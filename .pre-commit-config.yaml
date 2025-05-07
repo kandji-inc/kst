@@ -1,0 +1,77 @@
+repos:
+  # --------------------------------- Python -----------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: f0fe93c067104b76ffb58852abe79673a8429bd1  # frozen: v0.11.8
+    hooks:
+      - id: ruff
+        args: ["--fix", "--show-fixes", "--exit-non-zero-on-fix"]
+
+      - id: ruff-format
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: d3fe7262f7fd4563482eeab6a62b6f658cbea7a2  # frozen: 0.7.2
+    hooks:
+      - id: uv-lock
+
+  # --------------------------------- Shell ------------------------------------
+  - repo: https://github.com/lovesegfault/beautysh
+    rev: 386e46cf6e6e68e26e90a6c0e8c3d0f0d30c101c # frozen: v6.2.1
+    hooks:
+      - id: beautysh
+        args: ["--indent-size=4", "--force-function-style=fnpar"]
+        additional_dependencies:
+          # beautysh hasn't been updated since python 3.12 removed the default install of setuptools
+          - setuptools
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: a23f6b85d0fdd5bb9d564e2579e678033debbdff # frozen: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: ["--severity=warning"]
+
+  # -------------------------------- General -----------------------------------
+  - repo: https://github.com/codespell-project/codespell
+    rev: 63c8f8312b7559622c0d82815639671ae42132ac  # frozen: v2.4.1
+    hooks:
+      - id: codespell
+        args: ["--write-changes"]
+        additional_dependencies:
+          # In order to parse the pyproject.toml prior to python 3.11
+          - tomli
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: 68e8b45440415753fff70a312ece8da92ba85b4a # frozen: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--exclude-lines", '\${.*}', "--exclude-files", '.*pkg\.recipe|\.pre-commit-config.yaml']
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: a30f0d816e5062a67d87c8de753cfe499672b959 # frozen: v1.5.5
+    hooks:
+      - id: remove-tabs
+        exclude: ^(Makefile|debian/rules|.gitmodules|tests/resources/.*\.mobileconfig)(\.in)?$
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: cef0300fd0fc4d2a87a85fa2093c6b283ea36f4b # frozen: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=5120"] # 5 MB limit
+
+      - id: check-xml
+        types: ["file", "non-executable", "text"]
+        files: \.(recipe|plist|xml)$
+
+      - id: check-yaml
+
+      - id: check-toml
+
+      - id: debug-statements
+
+      - id: pretty-format-json
+        args: ["--autofix", "--indent=2", "--no-sort-keys"]
+
+      - id: check-json
+
+      - id: trailing-whitespace
+
+      - id: end-of-file-fixer
