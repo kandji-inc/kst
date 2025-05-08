@@ -48,6 +48,7 @@
 > More information at [brew.sh](https://docs.astral.sh/uv/getting-started/installation/).
 
 ```sh
+brew tap kandji-inc/kst https://github.com/kandji-inc/kst.git
 brew install kst
 ```
 
