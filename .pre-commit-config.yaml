@@ -43,7 +43,7 @@ repos:
     rev: 68e8b45440415753fff70a312ece8da92ba85b4a # frozen: v1.5.0
     hooks:
       - id: detect-secrets
-        args: ["--exclude-lines", '\${.*}', "--exclude-files", '.*pkg\.recipe|\.pre-commit-config.yaml']
+        args: ["--exclude-lines", '\${.*}', "--exclude-files", '.*pkg\.recipe|\.pre-commit-config.yaml|Formula/.*\.rb']
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: a30f0d816e5062a67d87c8de753cfe499672b959 # frozen: v1.5.5
