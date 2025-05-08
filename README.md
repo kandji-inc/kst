@@ -85,8 +85,8 @@ Follow the steps below to quickly get up and running with a local copy of your K
 3. Set your credentials:
     1. `export KST_TENANT=<YOUR_API_URL_HERE>`
     2. `export KST_TOKEN=<YOUR_API_TOKEN_HERE>`
-4. Download your custom profiles from Kandji: `kst profiles pull --all`
-5. Download your custom scripts from Kandji `kst scripts pull --all`
+4. Download your custom profiles from Kandji: `kst profile pull --all`
+5. Download your custom scripts from Kandji `kst script pull --all`
 
 > [!Note]
 > Replace `<YOUR_API_URL_HERE>` and `<YOUR_API_TOKEN_HERE>` with your API URL and token. See the authentication section
