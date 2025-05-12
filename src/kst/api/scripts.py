@@ -55,7 +55,7 @@ class CustomScriptsResource(ResourceBase):
             response = self.client.get(next_page)
 
             # Parse bytes content to CustomScriptPayloadList or raise ValidationError
-            script_list = PayloadList.model_validate_json(response.content)
+            script_list = PayloadList[CustomScriptPayload].model_validate_json(response.content)
 
             all_results.count = script_list.count
             all_results.results.extend(script_list.results)

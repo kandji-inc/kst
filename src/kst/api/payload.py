@@ -43,7 +43,7 @@ class CustomScriptPayload(BaseModel):
     remediation_script: str
     created_at: str
     updated_at: str
-    show_in_self_service: bool
+    show_in_self_service: bool | None = False
     self_service_category_id: str | None = None
     self_service_recommended: bool | None = None
 
