@@ -42,7 +42,7 @@ class CustomProfilesResource(ResourceBase):
             response = self.client.get(next_page)
 
             # Parse bytes content to CustomProfilePayloadList or raise ValidationError
-            profile_list = PayloadList.model_validate_json(response.content)
+            profile_list = PayloadList[CustomProfilePayload].model_validate_json(response.content)
 
             all_results.count = profile_list.count
             all_results.results.extend(profile_list.results)
