@@ -32,7 +32,7 @@ class CustomProfilePayload(BaseModel):
 class CustomScriptPayload(BaseModel):
     """Payload model for custom script API endpoints."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", json_schema_extra={"exclude_unset_fields": True})
 
     id: Annotated[str, AfterValidator(lambda value: value.lower())]
     name: str
@@ -43,7 +43,7 @@ class CustomScriptPayload(BaseModel):
     remediation_script: str
     created_at: str
     updated_at: str
-    show_in_self_service: bool
+    show_in_self_service: bool | None = False
     self_service_category_id: str | None = None
     self_service_recommended: bool | None = None
 
