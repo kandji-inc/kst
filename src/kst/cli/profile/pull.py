@@ -26,7 +26,7 @@ from kst.cli.utility import (
 )
 from kst.console import OutputConsole, epilog_text
 from kst.exceptions import GitRepositoryError
-from kst.repository import CustomProfile, RepositoryDirectory
+from kst.repository import CustomProfile, InfoFormat, RepositoryDirectory
 
 from .common import (
     ProfileAllOption,
@@ -56,6 +56,15 @@ CleanOption = Annotated[
         help="[red]Delete[/] local profiles which are not present in Kandji.",
     ),
 ]
+FormatOption = Annotated[
+    InfoFormat,
+    typer.Option(
+        "--format",
+        "-f",
+        help="The output format for new info files when pulling.",
+        rich_help_panel="Output",
+    ),
+]
 
 
 @app.command(name="pull", no_args_is_help=True, epilog=epilog_text)
@@ -69,6 +78,7 @@ def pull_profiles(
     dry_run: DryRunOption = False,
     tenant_url: KandjiTenantOption = None,
     api_token: ApiTokenOption = None,
+    format: FormatOption = InfoFormat.PLIST,
 ):
     """
     Pull remote custom profiles changes from Kandji.
@@ -86,6 +96,8 @@ def pull_profiles(
     If --clean is used, profiles will be deleted from the local repository if they
     are not in Kandji. --clean can only be used with --all.
 
+    If --format is used, newly created profile info files will use the specified format
+    (plist, json, or yaml). Existing files will retain their current format.
     """
 
     repo = validate_repo_path(repo=repo_str, subdir=RepositoryDirectory.PROFILES)
@@ -138,6 +150,11 @@ def pull_profiles(
     # Exit with error if any profiles were not found
     verify_all_ids_found(member_ids=map(str, profile_ids), local_repo=local_repo, remote_repo=remote_repo)
 
+    # Set format for new profile files
+    for member_id, member in remote_repo.items():
+        if member_id not in local_repo:
+            member.info.format = format
+            
     # Compare local and remote profiles
     changes = filter_changes(local_repo=local_repo, remote_repo=remote_repo)
 
