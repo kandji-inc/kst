@@ -209,6 +209,7 @@ wheels = [
 name = "kst"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "platformdirs" },
     { name = "pydantic" },
     { name = "requests" },
@@ -232,6 +233,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = "<8.2.0" },
     { name = "platformdirs", specifier = ">=4.3.6" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "requests", specifier = ">=2.32.3" },
