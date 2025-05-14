@@ -3,8 +3,8 @@ class Kst < Formula
 
   desc "Local management of Kandji custom resources"
   homepage "https://github.com/kandji-inc/kst"
-  url "https://files.pythonhosted.org/packages/da/47/ca3905ac8bb752628a50104e9e0b529d162892f55c6dc74de2593b5171d7/kst-1.0.2.tar.gz"
-  sha256 "dd858d8a0630480489f9dcbf9d6cfc69b6ddc5d94415f84975d601d230c8d5e4"
+  url "https://files.pythonhosted.org/packages/44/e3/e3f41d2802b4b8a225af1e07cefc5b66619c3e7d2a45091f46feed37ab2f/kst-1.0.1.tar.gz"
+  sha256 "212355151447537b4a7968fcff766241c685d79eb3960b244c1080f2a4bfba0c"
   license "MIT"
   head "https://github.com/kandji-inc/kst.git", branch: "main"
 
@@ -87,8 +87,8 @@ class Kst < Formula
   end
 
   resource "typer" do
-    url "https://files.pythonhosted.org/packages/6c/89/c527e6c848739be8ceb5c44eb8208c52ea3515c6cf6406aa61932887bf58/typer-0.15.4.tar.gz"
-    sha256 "89507b104f9b6a0730354f27c39fae5b63ccd0c95b1ce1f1a6ba0cfd329997c3"
+    url "https://files.pythonhosted.org/packages/98/1a/5f36851f439884bcfe8539f6a20ff7516e7b60f319bbaf69a90dc35cc2eb/typer-0.15.3.tar.gz"
+    sha256 "818873625d0569653438316567861899f7e9972f2e6e0c16dab608345ced713c"
   end
 
   resource "typing-extensions" do
