@@ -5,6 +5,7 @@ name = "kst"
 dynamic = ["version"]
 description = "Kandji Sync Toolkit, a utility for local management of Kandji resources."
 dependencies = [
+    "click<8.2.0",
     "platformdirs>=4.3.6",
     "pydantic>=2.9.2",
     "requests>=2.32.3",
