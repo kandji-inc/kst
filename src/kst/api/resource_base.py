@@ -4,6 +4,7 @@ from typing import Protocol, Self, override
 from kst.exceptions import ApiClientError
 
 from .client import ApiClient, ApiConfig
+from .s3_client import S3ApiClient
 
 
 class ResourceBase(AbstractContextManager, Protocol):
@@ -17,6 +18,7 @@ class ResourceBase(AbstractContextManager, Protocol):
     _path: str = ""
     _config: ApiConfig
     _client: ApiClient | None = None
+    _s3_client: S3ApiClient | None = None
 
     def __init__(self, config: ApiConfig) -> None:
         """Initialize a new CustomProfilesResource obj.
@@ -28,6 +30,7 @@ class ResourceBase(AbstractContextManager, Protocol):
         """
         self._config = config
         self._client: ApiClient | None = None
+        self._s3_client: S3ApiClient | None = None
 
     @property
     def client(self) -> ApiClient:
@@ -36,10 +39,18 @@ class ResourceBase(AbstractContextManager, Protocol):
 
         return self._client
 
+    @property
+    def s3_client(self) -> S3ApiClient:
+        if self._s3_client is None:
+            raise ApiClientError("No open S3 client available.")
+
+        return self._s3_client
+
     @override
     def __enter__(self) -> Self:
         """Open a new ApiClient session using with block and return self."""
         self._client = ApiClient(self._config)
+        self._s3_client = S3ApiClient()
         return self
 
     @override
@@ -47,6 +58,8 @@ class ResourceBase(AbstractContextManager, Protocol):
         """Disconnect the ApiClient session when exiting the with block."""
         self.client.close()
         self._client = None
+        self.s3_client.close()
+        self._s3_client = None
 
     def open(self) -> None:
         """Manually open a new ApiClient session."""

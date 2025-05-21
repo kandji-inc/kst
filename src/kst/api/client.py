@@ -2,6 +2,7 @@ import io
 import json
 import logging
 import re
+import time
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -134,39 +135,54 @@ class ApiClient:
             requests.HTTPError: Raised when the HTTP request returns an unsuccessful status code
 
         """
-
-        try:
-            console.debug(f"Making {method} request to {url}")
-
-            # Add the source=kst param to all requests
-            kwargs["params"] = kwargs.get("params", {}) | {"source": "kst"}
-
-            response = self.session.request(method, url, *args, **kwargs)
-
-            console.debug(f"Response status code: {response.status_code}")
-
+        max_retries = 5
+        initial_backoff = 5  # seconds
+        backoff = initial_backoff
+        for attempt in range(max_retries):
             try:
-                headers = "\n" + json.dumps(dict(response.headers), indent=2)
-            except json.JSONDecodeError:
-                headers = response.headers
-            console.debug(f"Response headers: {headers}")
+                console.debug(f"Making {method} request to {url}")
 
-            try:
-                content = "\n" + json.dumps(response.json(), indent=2)
-            except json.JSONDecodeError:
-                content = response.text
-            console.debug(f"Response content: {content}")
+                # Add the source=kst param to all requests
+                kwargs["params"] = kwargs.get("params", {}) | {"source": "kst"}
 
-            response.raise_for_status()
-        except requests.ConnectionError as error:
-            console.error(f"Connection error occurred: {error}")
-            raise
-        except requests.HTTPError as error:
-            console.error(f"HTTP error occurred: {error.response.status_code}")
-            console.error(f"Response content: {error.response.text}")
-            raise
+                response = self.session.request(method, url, *args, **kwargs)
 
-        return response
+                console.debug(f"Response status code: {response.status_code}")
+
+                try:
+                    headers = "\n" + json.dumps(dict(response.headers), indent=2)
+                except json.JSONDecodeError:
+                    headers = response.headers
+                console.debug(f"Response headers: {headers}")
+
+                try:
+                    content = "\n" + json.dumps(response.json(), indent=2)
+                except json.JSONDecodeError:
+                    content = response.text
+                console.debug(f"Response content: {content}")
+
+                if response.status_code == 503 and "The upload is still being processed." in content:
+                    if attempt < max_retries - 1:
+                        console.debug(
+                            f"Upload still processing, retrying in {backoff} seconds (attempt {attempt + 1}/{max_retries})"
+                        )
+                        time.sleep(backoff)
+                        backoff *= 2  # Exponential backoff: 5, 10, 20, 40, ...
+                        continue
+                    else:
+                        console.error("Max retries reached for upload processing.")
+                response.raise_for_status()
+                return response
+            except requests.ConnectionError as error:
+                console.error(f"Connection error occurred: {error}")
+                raise
+            except requests.HTTPError as error:
+                console.error(f"HTTP error occurred: {error.response.status_code}")
+                console.error(f"Response content: {error.response.text}")
+                raise
+
+        # If we get here, all retries failed
+        raise requests.HTTPError("Max retries exceeded for upload processing.")
 
     def get(self, path: str) -> requests.Response:
         """Make a GET HTTP request to the resolved API endpoint at path."""
