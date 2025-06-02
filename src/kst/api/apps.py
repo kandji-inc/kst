@@ -6,7 +6,7 @@ from .resource_base import ResourceBase
 
 
 class CustomAppsResource(ResourceBase):
-    """An API client weapper for interacting with the Custom Apps endpoint.
+    """An API client wrapper for interacting with the Custom Apps endpoint.
     Attributes:
         client (ApiClient): An ApiClient object with an open Session
 
