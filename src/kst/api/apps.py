@@ -137,11 +137,11 @@ class CustomAppsResource(ResourceBase):
 
         self.client.delete(f"{self._path}/{id}")
 
-    def upload(self, file: Path | BufferedReader):
+    def upload(self, name: str) -> CustomAppUploadPayload:
         """
         Upload a custom app to Kandji
         """
-        payload = {"name": (file.name)}
+        payload = {"name": name}
         response = self.client.post(f"{self._path}/upload", data=payload)
         return CustomAppUploadPayload.model_validate_json(response.content)
 
