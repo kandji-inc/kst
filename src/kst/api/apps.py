@@ -57,9 +57,12 @@ class CustomAppsResource(ResourceBase):
         """
         Create a new custom app in Kandji
         """
-
+        if audit_script and not install_enforcement == "continuously_enforce":
+            raise ValueError("audit_script can only be used with install_enforcement 'continuously_enforce'")
         if install_type == "zip" and unzip_location is None:
             raise ValueError("unzip_location must be provided when install_type is 'zip'")
+        if install_type not in ["package", "zip", "image"]:
+            raise ValueError("install_type must be one of 'package', 'zip', or 'image'")
 
         payload = {
             "name": name,
@@ -101,8 +104,12 @@ class CustomAppsResource(ResourceBase):
         Update a custom app in Kandji
         """
 
+        if audit_script and not install_enforcement == "continuously_enforce":
+            raise ValueError("audit_script can only be used with install_enforcement 'continuously_enforce'")
         if install_type == "zip" and unzip_location is None:
             raise ValueError("unzip_location must be provided when install_type is 'zip'")
+        if install_type not in ["package", "zip", "image"]:
+            raise ValueError("install_type must be one of 'package', 'zip', or 'image'")
 
         payload = {
             "name": name,
