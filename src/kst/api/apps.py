@@ -87,14 +87,14 @@ class CustomAppsResource(ResourceBase):
     def update(
         self,
         id: str,
-        name: str,
-        install_type: str,
-        install_enforcement: str,
-        audit_script: str,
-        preinstall_script: str,
-        postinstall_script: str,
-        restart: bool,
-        active: bool,
+        name: str | None = None,
+        install_type: str | None = None,
+        install_enforcement: str | None = None,
+        audit_script: str | None = None,
+        preinstall_script: str | None = None,
+        postinstall_script: str | None = None,
+        restart: bool | None = None,
+        active: bool | None = None,
         show_in_self_service: bool | None = False,
         self_service_category_id: str | None = None,
         self_service_recommended: bool | None = None,
@@ -108,7 +108,7 @@ class CustomAppsResource(ResourceBase):
             raise ValueError("audit_script can only be used with install_enforcement 'continuously_enforce'")
         if install_type == "zip" and unzip_location is None:
             raise ValueError("unzip_location must be provided when install_type is 'zip'")
-        if install_type not in ["package", "zip", "image"]:
+        if install_type not in ["package", "zip", "image", None]:
             raise ValueError("install_type must be one of 'package', 'zip', or 'image'")
 
         payload = {
