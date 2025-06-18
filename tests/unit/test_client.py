@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 import pytest
 from pydantic import ValidationError
 
-from kst.api import ApiClient, ApiConfig
+from kst.api import ApiClient, ApiConfig, S3ApiClient
 from kst.exceptions import ApiClientError
 
 
@@ -91,3 +91,19 @@ class TestApiClient:
         # Ensure that other parameters are not overwritten
         fake_client.request("GET", "https://example.com", params={"page": 3, "source": r"¯\_(ツ)_/¯"})
         assert patch_requests[-1][1]["params"] == {"page": 3, "source": "kst"}
+
+
+@pytest.fixture
+def fake_s3_client() -> Generator[S3ApiClient]:
+    client = S3ApiClient()
+    try:
+        yield client
+    finally:
+        client.close()
+
+
+class TestS3ApiClient:
+    def test_no_session(self, fake_s3_client):
+        fake_s3_client.close()
+        with pytest.raises(ApiClientError):
+            fake_s3_client.session
