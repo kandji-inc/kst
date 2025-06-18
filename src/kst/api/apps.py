@@ -158,5 +158,7 @@ class CustomAppsResource(ResourceBase):
             raise ValueError("Invalid file type provided. Must be a Path or BufferedReader object.")
         files = [("file", (file_name, file_obj, "application/octet-stream"))]
 
-        self.s3_client.post(post_url, data=post_data, files=files)
+        response = self.s3_client.post(post_url, data=post_data, files=files)
+        if response.status_code != 204:
+            raise ConnectionError(f"Failed to upload file to S3: {response.text}")
         return True

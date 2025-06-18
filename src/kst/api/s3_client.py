@@ -15,7 +15,6 @@ class S3ApiClient:
 
     def __init__(self):
         self._session = requests.Session()
-        self.session.headers.update()
 
     @property
     def session(self) -> requests.Session:
