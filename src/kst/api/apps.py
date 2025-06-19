@@ -147,6 +147,7 @@ class CustomAppsResource(ResourceBase):
         self,
         id: str,
         name: str | None = None,
+        file_key: str | None = None,
         install_type: str | None = None,
         install_enforcement: str | None = None,
         audit_script: str | None = None,
@@ -164,6 +165,7 @@ class CustomAppsResource(ResourceBase):
         Args:
             id (str): The library item id of the app to update
             name (str, optional): The name for the app
+            file_key (str, optional): The S3 file key for the uploaded app file
             install_type (str, optional): The installation type ('package', 'zip', or 'image')
             install_enforcement (str, optional): The enforcement type for installation
             audit_script (str, optional): Script to audit app installation (only with 'continuously_enforce')
@@ -197,6 +199,7 @@ class CustomAppsResource(ResourceBase):
 
         payload = {
             "name": name,
+            "file_key": file_key,
             "install_type": install_type,
             "install_enforcement": install_enforcement,
             "audit_script": audit_script,
