@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from kst.api import CustomAppPayload
+from kst.api import CustomAppPayload, InstallEnforcement, InstallType
 
 from .conftest import delete_app_factory
 
@@ -38,8 +38,8 @@ def test_successful_create(monkeypatch, response_factory, custom_apps_resource):
     response = custom_apps_resource.create(
         name="Custom Apps Test",
         file_key="companies/companies/d934a231-e183-4951-b0a0-763e20572c1d/library/custom_apps/test_18cf0dfc.pkg",
-        install_type="package",
-        install_enforcement="install_once",
+        install_type=InstallType.PACKAGE,
+        install_enforcement=InstallEnforcement.INSTALL_ONCE,
         audit_script="",
         preinstall_script="",
         postinstall_script="",
@@ -65,23 +65,8 @@ def test_json_response_error(monkeypatch, response_factory, custom_apps_resource
         custom_apps_resource.create(
             name="Custom Apps Test",
             file_key="companies/companies/d934a231-e183-4951-b0a0-763e20572c1d/library/custom_apps/test_18cf0dfc.pkg",
-            install_type="package",
-            install_enforcement="install_once",
-            audit_script="",
-            preinstall_script="",
-            postinstall_script="",
-            restart=False,
-            active=True,
-        )
-
-
-def test_create_with_invalid_install_type(custom_apps_resource):
-    with pytest.raises(ValueError, match="install_type must be one of 'package', 'zip', or 'image'"):
-        custom_apps_resource.create(
-            name="Invalid Install Type Test",
-            file_key="companies/companies/d934a231-e183-4951-b0a0-763e20572c1d/library/custom_apps/test_18cf0dfc.pkg",
-            install_type="invalid_type",  # Invalid install type
-            install_enforcement="install_once",
+            install_type=InstallType.PACKAGE,
+            install_enforcement=InstallEnforcement.INSTALL_ONCE,
             audit_script="",
             preinstall_script="",
             postinstall_script="",
@@ -95,8 +80,8 @@ def test_create_with_missing_unzip_location(custom_apps_resource):
         custom_apps_resource.create(
             name="Missing Unzip Location Test",
             file_key="companies/companies/d934a231-e183-4951-b0a0-763e20572c1d/library/custom_apps/test_18cf0dfc.pkg",
-            install_type="zip",  # Valid install type
-            install_enforcement="install_once",
+            install_type=InstallType.ZIP,  # Valid install type
+            install_enforcement=InstallEnforcement.INSTALL_ONCE,
             audit_script="",
             preinstall_script="",
             postinstall_script="",
@@ -112,8 +97,8 @@ def test_create_with_invalid_audit_script(custom_apps_resource):
         custom_apps_resource.create(
             name="Invalid Audit Script Test",
             file_key="companies/companies/d934a231-e183-4951-b0a0-763e20572c1d/library/custom_apps/test_18cf0dfc.pkg",
-            install_type="package",
-            install_enforcement="install_once",  # Invalid enforcement for audit script
+            install_type=InstallType.PACKAGE,
+            install_enforcement=InstallEnforcement.INSTALL_ONCE,  # Invalid enforcement for audit script
             audit_script="#!/bin/bash\necho 'Audit script'",
             preinstall_script="",
             postinstall_script="",
@@ -128,8 +113,8 @@ def test_successful_create_live(config, setup_live_apps_upload_to_s3, custom_app
     response = custom_apps_resource.create(
         name="Live Test App",
         file_key=file_key,
-        install_type="zip",
-        install_enforcement="continuously_enforce",
+        install_type=InstallType.ZIP,
+        install_enforcement=InstallEnforcement.CONTINUOUSLY_ENFORCE,
         audit_script="#!/bin/bash\necho 'Audit script'",
         preinstall_script="#!/bin/bash\necho 'Pre-install script'",
         postinstall_script="#!/bin/bash\necho 'Post-install script'",

@@ -1,4 +1,4 @@
-from .apps import CustomAppsResource
+from .apps import CustomAppsResource, InstallEnforcement, InstallType
 from .client import ApiClient, ApiConfig
 from .payload import (
     ApiPayloadType,
@@ -26,6 +26,8 @@ __all__ = [
     "CustomScriptPayload",
     "CustomScriptsResource",
     "ExecutionFrequency",
+    "InstallEnforcement",
+    "InstallType",
     "PayloadList",
     "S3ApiClient",
     "SelfServiceCategoriesResource",

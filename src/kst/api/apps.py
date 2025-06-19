@@ -1,8 +1,25 @@
+from enum import StrEnum
 from io import BufferedReader
 from pathlib import Path
 
 from .payload import CustomAppPayload, CustomAppUploadPayload, PayloadList
 from .resource_base import ResourceBase
+
+
+class InstallType(StrEnum):
+    """An enumeration of possible installation types for a custom app."""
+
+    PACKAGE = "package"
+    ZIP = "zip"
+    IMAGE = "image"
+
+
+class InstallEnforcement(StrEnum):
+    """An enumeration of possible installation enforcement types for a custom app."""
+
+    INSTALL_ONCE = "install_once"
+    CONTINUOUSLY_ENFORCE = "continuously_enforce"
+    NO_ENFORCEMENT = "no_enforcement"
 
 
 class CustomAppsResource(ResourceBase):
@@ -76,8 +93,8 @@ class CustomAppsResource(ResourceBase):
         self,
         name: str,
         file_key: str,
-        install_type: str,
-        install_enforcement: str,
+        install_type: InstallType,
+        install_enforcement: InstallEnforcement,
         audit_script: str,
         preinstall_script: str,
         postinstall_script: str,
@@ -93,8 +110,8 @@ class CustomAppsResource(ResourceBase):
         Args:
             name (str): The name for the new app
             file_key (str): The S3 file key for the uploaded app file
-            install_type (str): The installation type ('package', 'zip', or 'image')
-            install_enforcement (str): The enforcement type for installation
+            install_type (InstallType): The installation type
+            install_enforcement (InstallEnforcement): The enforcement type for installation
             audit_script (str): Script to audit app installation (only with 'continuously_enforce')
             preinstall_script (str): Script to run before installation
             postinstall_script (str): Script to run after installation
@@ -116,18 +133,16 @@ class CustomAppsResource(ResourceBase):
             ValidationError: Raised when the response does not match the expected schema
 
         """
-        if audit_script and not install_enforcement == "continuously_enforce":
+        if audit_script and install_enforcement != InstallEnforcement.CONTINUOUSLY_ENFORCE:
             raise ValueError("audit_script can only be used with install_enforcement 'continuously_enforce'")
-        if install_type == "zip" and unzip_location is None:
+        if install_type == InstallType.ZIP and unzip_location is None:
             raise ValueError("unzip_location must be provided when install_type is 'zip'")
-        if install_type not in ["package", "zip", "image"]:
-            raise ValueError("install_type must be one of 'package', 'zip', or 'image'")
 
         payload = {
             "name": name,
             "file_key": file_key,
-            "install_type": install_type,
-            "install_enforcement": install_enforcement,
+            "install_type": str(install_type),
+            "install_enforcement": str(install_enforcement),
             "audit_script": audit_script,
             "preinstall_script": preinstall_script,
             "postinstall_script": postinstall_script,
@@ -148,8 +163,8 @@ class CustomAppsResource(ResourceBase):
         id: str,
         name: str | None = None,
         file_key: str | None = None,
-        install_type: str | None = None,
-        install_enforcement: str | None = None,
+        install_type: InstallType | None = None,
+        install_enforcement: InstallEnforcement | None = None,
         audit_script: str | None = None,
         preinstall_script: str | None = None,
         postinstall_script: str | None = None,
@@ -166,8 +181,8 @@ class CustomAppsResource(ResourceBase):
             id (str): The library item id of the app to update
             name (str, optional): The name for the app
             file_key (str, optional): The S3 file key for the uploaded app file
-            install_type (str, optional): The installation type ('package', 'zip', or 'image')
-            install_enforcement (str, optional): The enforcement type for installation
+            install_type (InstallType, optional): The installation type
+            install_enforcement (InstallEnforcement, optional): The enforcement type for installation
             audit_script (str, optional): Script to audit app installation (only with 'continuously_enforce')
             preinstall_script (str, optional): Script to run before installation
             postinstall_script (str, optional): Script to run after installation
@@ -190,18 +205,16 @@ class CustomAppsResource(ResourceBase):
 
         """
 
-        if audit_script and not install_enforcement == "continuously_enforce":
+        if audit_script and install_enforcement != InstallEnforcement.CONTINUOUSLY_ENFORCE:
             raise ValueError("audit_script can only be used with install_enforcement 'continuously_enforce'")
-        if install_type == "zip" and unzip_location is None:
+        if install_type == InstallType.ZIP and unzip_location is None:
             raise ValueError("unzip_location must be provided when install_type is 'zip'")
-        if install_type not in ["package", "zip", "image", None]:
-            raise ValueError("install_type must be one of 'package', 'zip', or 'image'")
 
         payload = {
             "name": name,
             "file_key": file_key,
-            "install_type": install_type,
-            "install_enforcement": install_enforcement,
+            "install_type": None if install_type is None else str(install_type),
+            "install_enforcement": None if install_enforcement is None else str(install_enforcement),
             "audit_script": audit_script,
             "preinstall_script": preinstall_script,
             "postinstall_script": postinstall_script,

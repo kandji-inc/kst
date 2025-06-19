@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from kst.api.apps import CustomAppPayload
+from kst.api import CustomAppPayload, InstallEnforcement, InstallType
 
 
 def test_successful_create(monkeypatch, response_factory, custom_apps_resource):
@@ -48,16 +48,11 @@ def test_json_response_error(monkeypatch, response_factory, custom_apps_resource
         custom_apps_resource.update(id="test-app-id-12345", name="Custom Apps Test Updated")
 
 
-def test_update_with_invalid_install_type(monkeypatch, custom_apps_resource):
-    with pytest.raises(ValueError, match="install_type must be one of 'package', 'zip', or 'image'"):
-        custom_apps_resource.update(
-            id="test-app-id-12345", name="Custom Apps Test Updated", install_type="invalid_type"
-        )
-
-
 def test_update_with_missing_unzip_location(monkeypatch, custom_apps_resource):
     with pytest.raises(ValueError, match="unzip_location must be provided when install_type is 'zip'"):
-        custom_apps_resource.update(id="test-app-id-12345", name="Custom Apps Test Updated", install_type="zip")
+        custom_apps_resource.update(
+            id="test-app-id-12345", name="Custom Apps Test Updated", install_type=InstallType.ZIP
+        )
 
 
 def test_update_with_invalid_audit_script(monkeypatch, custom_apps_resource):
@@ -67,7 +62,7 @@ def test_update_with_invalid_audit_script(monkeypatch, custom_apps_resource):
         custom_apps_resource.update(
             id="test-app-id-12345",
             name="Custom Apps Test Updated",
-            install_enforcement="install_once",
+            install_enforcement=InstallEnforcement.INSTALL_ONCE,
             audit_script="#!/bin/bash\necho 'Audit script'",
         )
 
