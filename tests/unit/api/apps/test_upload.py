@@ -43,3 +43,19 @@ def test_response_error(monkeypatch, response_factory, custom_apps_resource):
 
     with pytest.raises(ValidationError):
         custom_apps_resource.upload(name="test.pkg")
+
+
+@pytest.mark.allow_http
+def test_successful_upload_live(custom_apps_resource):
+    response = custom_apps_resource.upload(name="test_live_app.pkg")
+    assert isinstance(response, CustomAppUploadPayload)
+    assert response.post_url is not None
+    assert response.file_key is not None
+    assert response.post_data is not None
+    assert "key" in response.post_data
+    assert "x-amz-algorithm" in response.post_data
+    assert "x-amz-credential" in response.post_data
+    assert "x-amz-date" in response.post_data
+    assert "x-amz-security-token" in response.post_data
+    assert "policy" in response.post_data
+    assert "x-amz-signature" in response.post_data

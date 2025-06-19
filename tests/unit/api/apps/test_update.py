@@ -70,3 +70,12 @@ def test_update_with_invalid_audit_script(monkeypatch, custom_apps_resource):
             install_enforcement="install_once",
             audit_script="#!/bin/bash\necho 'Audit script'",
         )
+
+
+@pytest.mark.allow_http
+def test_successful_update_live(setup_live_apps_create_and_delete, custom_apps_resource):
+    app_id = setup_live_apps_create_and_delete
+    response = custom_apps_resource.update(id=app_id, name="Updated Live App Name")
+    assert isinstance(response, CustomAppPayload)
+    assert response.id == app_id
+    assert response.name == "Updated Live App Name"

@@ -87,3 +87,13 @@ def test_response_error(monkeypatch, response_factory, custom_apps_resource, tmp
     app_path.write_text("dummy app data")
     with pytest.raises(ConnectionError, match="Invalid request"):
         custom_apps_resource.upload_to_s3(file=app_path, post_url="post_url", post_data={"key": "value"})
+
+
+@pytest.mark.allow_http
+def test_successful_upload_live(setup_live_apps_upload, custom_apps_resource, tmp_path):
+    app_path = tmp_path / "test_app.pkg"
+    app_path.write_text("dummy app data")
+
+    _file_key, post_data, post_url = setup_live_apps_upload
+    response = custom_apps_resource.upload_to_s3(file=app_path, post_url=post_url, post_data=post_data)
+    assert response is True
