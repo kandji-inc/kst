@@ -179,3 +179,13 @@ def test_list_json_response_error(monkeypatch, response_factory, custom_apps_res
     monkeypatch.setattr("kst.api.client.ApiClient.get", mock_get_request)
     with pytest.raises(ValidationError):
         custom_apps_resource.list()
+
+
+@pytest.mark.allow_http
+def test_successful_list_live(custom_apps_resource):
+    response = custom_apps_resource.list()
+    assert isinstance(response, PayloadList)
+    assert response.next is None
+    assert response.previous is None
+    assert response.count > 0
+    assert len(response.results) == response.count

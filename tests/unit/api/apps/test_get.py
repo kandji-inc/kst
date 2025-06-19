@@ -42,3 +42,11 @@ def test_json_response_error(monkeypatch, response_factory, custom_apps_resource
     monkeypatch.setattr("kst.api.client.ApiClient.get", mock_get_request)
     with pytest.raises(ValidationError):
         custom_apps_resource.get("random-id")
+
+
+@pytest.mark.allow_http
+def test_successful_get_live(setup_live_apps_create_and_delete, custom_apps_resource):
+    app_id = setup_live_apps_create_and_delete
+    response = custom_apps_resource.get(app_id)
+    assert isinstance(response, CustomAppPayload)
+    assert response.id == app_id
