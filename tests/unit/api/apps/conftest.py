@@ -10,7 +10,7 @@ from kst.api import ApiConfig, CustomAppsResource
 
 
 def upload_app(config: ApiConfig, app_name: str) -> tuple[str, dict[str, str], str]:
-    """Gets the upload information for a dummy app in a Kandji tenant."""
+    """Get upload information for a dummy app in a Kandji tenant."""
     headers = {"Authorization": f"Bearer {config.api_token}"}
     resource_url = urljoin(config.url, "api/v1/library/custom-apps/upload")
     response = requests.post(
@@ -26,7 +26,7 @@ def upload_app(config: ApiConfig, app_name: str) -> tuple[str, dict[str, str], s
 
 
 def upload_app_to_s3(post_url: str, post_data: dict[str, str], app_name: str, tmp_path: Path) -> bool:
-    """Upload a dummy app to S3"""
+    """Upload a dummy app to S3."""
     app_file = tmp_path / app_name
     app_file.write_text("dummy app data")
     response = requests.post(
@@ -39,7 +39,7 @@ def upload_app_to_s3(post_url: str, post_data: dict[str, str], app_name: str, tm
 
 
 def create_app(config: ApiConfig, file_key: str) -> str:
-    """Create and upload a single app in a Kandji tenant and return the app ID."""
+    """Create a single app in a Kandji tenant and return the app ID."""
     resource_url = urljoin(config.url, "api/v1/library/custom-apps")
     headers = {"Authorization": f"Bearer {config.api_token}"}
     payload = {
@@ -90,7 +90,7 @@ def delete_app_factory(config: ApiConfig, app_id: str) -> Callable:
 
 @pytest.fixture
 def setup_live_apps_upload(config: ApiConfig) -> tuple[str, dict[str, str], str]:
-    """Get a post_data object, url and file_key from the Kandji API for uploading an app to S3."""
+    """Get post_data object, url and file_key from the Kandji API for uploading an app to S3."""
     app_name = "test_app.pkg"
     file_key, post_data, post_url = upload_app(config, app_name)
     return file_key, post_data, post_url
@@ -98,7 +98,7 @@ def setup_live_apps_upload(config: ApiConfig) -> tuple[str, dict[str, str], str]
 
 @pytest.fixture
 def setup_live_apps_upload_to_s3(config: ApiConfig, tmp_path) -> str:
-    """Upload a dummy app to S3"""
+    """Upload a dummy app to S3."""
     app_name = "test_app.pkg"
     file_key, post_data, post_url = upload_app(config, app_name)
     upload_app_to_s3(post_url, post_data, app_name, tmp_path)
@@ -126,6 +126,6 @@ def setup_live_apps_create_and_delete(config: ApiConfig, tmp_path: Path) -> Iter
 
 @pytest.fixture
 def custom_apps_resource(config: ApiConfig) -> Iterator[CustomAppsResource]:
-    """Return an open CustomProfilesResource object."""
+    """Return an open CustomAppsResource object."""
     with CustomAppsResource(config) as apps:
         yield apps
