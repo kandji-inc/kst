@@ -16,6 +16,8 @@ def test_api_imports():
         "CustomScriptPayload",
         "CustomScriptsResource",
         "ExecutionFrequency",
+        "InstallEnforcement",
+        "InstallType",
         "PayloadList",
         "S3ApiClient",
         "SelfServiceCategoriesResource",
