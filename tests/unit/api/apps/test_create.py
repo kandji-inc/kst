@@ -107,6 +107,22 @@ def test_create_with_invalid_audit_script(custom_apps_resource):
         )
 
 
+def test_create_with_show_in_self_service_missing_category_id(custom_apps_resource):
+    with pytest.raises(ValueError, match="self_service_category_id is required if show_in_self_service is True"):
+        custom_apps_resource.create(
+            name="Missing Category ID Test",
+            file_key="companies/companies/d934a231-e183-4951-b0a0-763e20572c1d/library/custom_apps/test_18cf0dfc.pkg",
+            install_type=InstallType.PACKAGE,
+            install_enforcement=InstallEnforcement.INSTALL_ONCE,
+            audit_script="",
+            preinstall_script="",
+            postinstall_script="",
+            restart=False,
+            active=True,
+            show_in_self_service=True,  # Missing self_service_category_id
+        )
+
+
 @pytest.mark.allow_http
 def test_successful_create_live(config, setup_live_apps_upload_to_s3, custom_apps_resource, request):
     file_key = setup_live_apps_upload_to_s3

@@ -5,6 +5,11 @@ from pathlib import Path
 from .payload import CustomAppPayload, CustomAppUploadPayload, PayloadList
 from .resource_base import ResourceBase
 
+SHOW_IN_SELF_SERVICE_EXAMPLE = """Example:
+  "show_in_self_service": true
+  "self_service_category_id": "ae492437-c35f-46a3-bd0b-21188a69dfb1"
+"""
+
 
 class InstallType(StrEnum):
     """An enumeration of possible installation types for a custom app."""
@@ -138,6 +143,12 @@ class CustomAppsResource(ResourceBase):
         if install_type == InstallType.ZIP and unzip_location is None:
             raise ValueError("unzip_location must be provided when install_type is 'zip'")
 
+        if show_in_self_service:
+            if self_service_category_id is None:
+                raise ValueError(
+                    f"self_service_category_id is required if show_in_self_service is True.\n\n{SHOW_IN_SELF_SERVICE_EXAMPLE}"
+                )
+
         payload = {
             "name": name,
             "file_key": file_key,
@@ -209,6 +220,12 @@ class CustomAppsResource(ResourceBase):
             raise ValueError("audit_script can only be used with install_enforcement 'continuously_enforce'")
         if install_type == InstallType.ZIP and unzip_location is None:
             raise ValueError("unzip_location must be provided when install_type is 'zip'")
+
+        if show_in_self_service:
+            if self_service_category_id is None:
+                raise ValueError(
+                    f"self_service_category_id is required if show_in_self_service is True.\n\n{SHOW_IN_SELF_SERVICE_EXAMPLE}"
+                )
 
         payload = {
             "name": name,

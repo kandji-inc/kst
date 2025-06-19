@@ -67,6 +67,15 @@ def test_update_with_invalid_audit_script(monkeypatch, custom_apps_resource):
         )
 
 
+def test_update_with_show_in_self_service_missing_category_id(monkeypatch, custom_apps_resource):
+    with pytest.raises(ValueError, match="self_service_category_id is required if show_in_self_service is True"):
+        custom_apps_resource.update(
+            id="test-app-id-12345",
+            name="Custom Apps Test Updated",
+            show_in_self_service=True,  # Missing self_service_category_id
+        )
+
+
 @pytest.mark.allow_http
 def test_successful_update_live(setup_live_apps_create_and_delete, custom_apps_resource):
     app_id = setup_live_apps_create_and_delete
