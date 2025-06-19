@@ -3,6 +3,8 @@ from pydantic import ValidationError
 
 from kst.api import CustomAppPayload
 
+from .conftest import delete_app_factory
+
 
 def test_successful_create(monkeypatch, response_factory, custom_apps_resource):
     def mock_post_request(self, path, data):
@@ -118,3 +120,31 @@ def test_create_with_invalid_audit_script(custom_apps_resource):
             restart=False,
             active=True,
         )
+
+
+@pytest.mark.allow_http
+def test_successful_create_live(config, setup_live_apps_upload_to_s3, custom_apps_resource, request):
+    file_key = setup_live_apps_upload_to_s3
+    response = custom_apps_resource.create(
+        name="Live Test App",
+        file_key=file_key,
+        install_type="zip",
+        install_enforcement="continuously_enforce",
+        audit_script="#!/bin/bash\necho 'Audit script'",
+        preinstall_script="#!/bin/bash\necho 'Pre-install script'",
+        postinstall_script="#!/bin/bash\necho 'Post-install script'",
+        restart=False,
+        active=True,
+        show_in_self_service=False,
+        unzip_location="/var/tmp",
+    )
+    request.addfinalizer(delete_app_factory(config, response.id))
+    assert response.id is not None
+    assert response.name == "Live Test App"
+    assert response.install_type == "zip"
+    assert response.install_enforcement == "continuously_enforce"
+    assert response.audit_script == "#!/bin/bash\necho 'Audit script'"
+    assert response.preinstall_script == "#!/bin/bash\necho 'Pre-install script'"
+    assert response.postinstall_script == "#!/bin/bash\necho 'Post-install script'"
+    assert response.restart is False
+    assert response.active is True

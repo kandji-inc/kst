@@ -97,11 +97,12 @@ def setup_live_apps_upload(config: ApiConfig) -> tuple[str, dict[str, str], str]
 
 
 @pytest.fixture
-def setup_live_apps_upload_to_s3(config: ApiConfig, tmp_path) -> bool:
+def setup_live_apps_upload_to_s3(config: ApiConfig, tmp_path) -> str:
     """Upload a dummy app to S3"""
     app_name = "test_app.pkg"
-    _file_key, post_data, post_url = upload_app(config, app_name)
-    return upload_app_to_s3(post_url, post_data, app_name, tmp_path)
+    file_key, post_data, post_url = upload_app(config, app_name)
+    upload_app_to_s3(post_url, post_data, app_name, tmp_path)
+    return file_key
 
 
 @pytest.fixture
