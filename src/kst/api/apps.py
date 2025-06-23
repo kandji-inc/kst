@@ -1,9 +1,18 @@
+import logging
 from enum import StrEnum
 from io import BufferedReader
 from pathlib import Path
+from time import sleep
+
+import requests
+
+from kst.api.client import ApiClientError
+from kst.console import OutputConsole
 
 from .payload import CustomAppPayload, CustomAppUploadPayload, PayloadList
 from .resource_base import ResourceBase
+
+console = OutputConsole(logging.getLogger(__name__))
 
 SHOW_IN_SELF_SERVICE_EXAMPLE = """Example:
   "show_in_self_service": true
@@ -39,12 +48,51 @@ class CustomAppsResource(ResourceBase):
         create: Create a new custom app
         update: Update an existing custom app by id
         delete: Delete an existing custom app by id
-        upload: Get S3 upload details for a custom app
-        upload_to_s3: Upload a file to S3 using presigned URL
 
     """
 
     _path = "/api/v1/library/custom-apps"
+
+    def _upload_file(self, file: Path | BufferedReader) -> str:
+        """Upload a file to S3 with exponential backoff retry logic.
+
+        Args:
+            file (Path | BufferedReader): File to upload (Path object or open BufferedReader)
+
+        Returns:
+            str: The S3 file key for the uploaded file
+
+        Raises:
+            FileNotFoundError: Raised when the file does not exist or is not readable
+            ValueError: Raised when invalid file type is provided
+            ApiClientError: Raised if a ApiClient has not been opened
+            HTTPError: Raised when the HTTP request returns an unsuccessful status code
+            ConnectionError: Raised when S3 upload fails after retries
+            ValidationError: Raised when the response does not match the expected schema
+
+        """
+        if isinstance(file, Path):
+            if not file.is_file():
+                raise FileNotFoundError(f"The file {file} does not exist or is not readable")
+            file_obj = file.open("rb")
+        elif isinstance(file, BufferedReader):
+            file_obj = file
+        else:
+            raise ValueError("Invalid file type provided. Must be a Path or BufferedReader object.")
+        file_name = file.name
+
+        # Get upload details from API
+        payload = {"name": file_name}
+        response = self.client.post(f"{self._path}/upload", data=payload)
+        upload_response = CustomAppUploadPayload.model_validate_json(response.content)
+
+        # Upload to S3
+        files = [("file", (file_name, file_obj, "application/octet-stream"))]
+        response = self.s3_client.post(upload_response.post_url, data=upload_response.post_data, files=files)
+        if response.status_code != 204:
+            raise ConnectionError(f"Failed to upload file to S3: {response.text}")
+
+        return upload_response.file_key
 
     def list(self) -> PayloadList[CustomAppPayload]:
         """Retrieve a list of all custom apps.
@@ -97,7 +145,7 @@ class CustomAppsResource(ResourceBase):
     def create(
         self,
         name: str,
-        file_key: str,
+        file: Path | BufferedReader,
         install_type: InstallType,
         install_enforcement: InstallEnforcement,
         audit_script: str,
@@ -114,7 +162,7 @@ class CustomAppsResource(ResourceBase):
 
         Args:
             name (str): The name for the new app
-            file_key (str): The S3 file key for the uploaded app file
+            file (Path | BufferedReader): The app file to upload (Path object or open BufferedReader)
             install_type (InstallType): The installation type
             install_enforcement (InstallEnforcement): The enforcement type for installation
             audit_script (str): Script to audit app installation (only with 'continuously_enforce')
@@ -149,6 +197,8 @@ class CustomAppsResource(ResourceBase):
                     f"self_service_category_id is required if show_in_self_service is True.\n\n{SHOW_IN_SELF_SERVICE_EXAMPLE}"
                 )
 
+        file_key = self._upload_file(file)
+
         payload = {
             "name": name,
             "file_key": file_key,
@@ -165,15 +215,31 @@ class CustomAppsResource(ResourceBase):
             "unzip_location": unzip_location,
         }
 
-        payload = {k: v for k, v in payload.items() if v is not None}
-        response = self.client.post(self._path, data=payload)
-        return CustomAppPayload.model_validate_json(response.content)
+        payload = {
+            k: v for k, v in payload.items() if v is not None
+        }  # Retry logic for create API call when file is still being processed
+        max_attempts = 5
+        for attempt in range(max_attempts):
+            try:
+                response = self.client.post(self._path, data=payload)
+                return CustomAppPayload.model_validate_json(response.content)
+            except requests.HTTPError as e:
+                if e.response.status_code == 503 and "The upload is still being processed." in e.response.text:
+                    if attempt < max_attempts - 1:
+                        console.warning(
+                            f"Upload still being processed, retrying (attempt {attempt + 2}/{max_attempts})..."
+                        )
+                        sleep(2**attempt)
+                        continue
+                raise
+
+        raise ApiClientError(f"Failed to create custom app after {max_attempts} attempts.")
 
     def update(
         self,
         id: str,
         name: str | None = None,
-        file_key: str | None = None,
+        file: Path | BufferedReader | None = None,
         install_type: InstallType | None = None,
         install_enforcement: InstallEnforcement | None = None,
         audit_script: str | None = None,
@@ -227,6 +293,10 @@ class CustomAppsResource(ResourceBase):
                     f"self_service_category_id is required if show_in_self_service is True.\n\n{SHOW_IN_SELF_SERVICE_EXAMPLE}"
                 )
 
+        file_key = None
+        if file:
+            file_key = self._upload_file(file)
+
         payload = {
             "name": name,
             "file_key": file_key,
@@ -244,8 +314,23 @@ class CustomAppsResource(ResourceBase):
         }
 
         payload = {k: v for k, v in payload.items() if v is not None}
-        response = self.client.patch(f"{self._path}/{id}", data=payload)
-        return CustomAppPayload.model_validate_json(response.content)
+
+        # Retry logic for update API call when file is still being processed
+        max_attempts = 5
+        for attempt in range(max_attempts):
+            try:
+                response = self.client.patch(f"{self._path}/{id}", data=payload)
+                return CustomAppPayload.model_validate_json(response.content)
+            except requests.HTTPError as e:
+                if e.response.status_code == 503 and "The upload is still being processed." in e.response.text:
+                    if attempt < max_attempts - 1:
+                        console.warning(
+                            f"Upload still being processed, retrying (attempt {attempt + 2}/{max_attempts})..."
+                        )
+                        sleep(2**attempt)
+                        continue
+
+        raise ApiClientError(f"Failed to update custom app after {max_attempts} attempts.")
 
     def delete(self, id: str) -> None:
         """Delete an existing custom app in Kandji.
@@ -261,63 +346,3 @@ class CustomAppsResource(ResourceBase):
         """
 
         self.client.delete(f"{self._path}/{id}")
-
-    def upload(self, name: str) -> CustomAppUploadPayload:
-        """Retrieve the S3 upload details needed for uploading the app using upload_to_s3.
-
-        Args:
-            name (str): The filename for the app to upload
-
-        Returns:
-            CustomAppUploadPayload: A parsed object containing S3 upload details
-
-        Raises:
-            ApiClientError: Raised if a ApiClient has not been opened
-            HTTPError: Raised when the HTTP request returns an unsuccessful status code
-            ConnectionError: Raised when the API connection fails
-            ValidationError: Raised when the response does not match the expected schema
-
-        """
-        payload = {"name": name}
-        response = self.client.post(f"{self._path}/upload", data=payload)
-        return CustomAppUploadPayload.model_validate_json(response.content)
-
-    def upload_to_s3(
-        self,
-        file: Path | BufferedReader,
-        post_url: str,
-        post_data: dict[str, str],
-    ) -> bool:
-        """Upload a file to S3 using presigned URL and post data provided by the upload method.
-
-        Args:
-            file (Path | BufferedReader): File to upload (Path object or open BufferedReader)
-            post_url (str): The S3 presigned POST URL
-            post_data (dict[str, str]): The POST data for S3 upload
-
-        Returns:
-            bool: True if upload was successful
-
-        Raises:
-            FileNotFoundError: Raised when the file does not exist or is not readable
-            ValueError: Raised when invalid file type is provided
-            ConnectionError: Raised when S3 upload fails
-
-        """
-
-        if isinstance(file, Path):
-            if not file.is_file():
-                raise FileNotFoundError(f"The file {file} does not exist or is not readable")
-            file_obj = file.open("rb")
-            file_name = file.name
-        elif isinstance(file, BufferedReader):
-            file_obj = file
-            file_name = file.name
-        else:
-            raise ValueError("Invalid file type provided. Must be a Path or BufferedReader object.")
-        files = [("file", (file_name, file_obj, "application/octet-stream"))]
-
-        response = self.s3_client.post(post_url, data=post_data, files=files)
-        if response.status_code != 204:
-            raise ConnectionError(f"Failed to upload file to S3: {response.text}")
-        return True
