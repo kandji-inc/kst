@@ -88,21 +88,15 @@ def delete_app_factory(config: ApiConfig, app_id: str) -> Callable:
     return delete_app
 
 
-@pytest.fixture
-def setup_live_apps_upload(config: ApiConfig) -> tuple[str, dict[str, str], str]:
-    """Get post_data object, url and file_key from the Kandji API for uploading an app to S3."""
-    app_name = "test_app.pkg"
-    file_key, post_data, post_url = upload_app(config, app_name)
-    return file_key, post_data, post_url
+def create_without_upload_and_delete_factory(config: ApiConfig, file_key: str) -> Callable:
+    """Return a function which creates an app without uploading it and deletes it after the test."""
 
+    def create_and_delete():
+        app_id = create_app(config, file_key)
+        delete_app_factory(config, app_id)()
+        return app_id
 
-@pytest.fixture
-def setup_live_apps_upload_to_s3(config: ApiConfig, tmp_path) -> str:
-    """Upload a dummy app to S3."""
-    app_name = "test_app.pkg"
-    file_key, post_data, post_url = upload_app(config, app_name)
-    upload_app_to_s3(post_url, post_data, app_name, tmp_path)
-    return file_key
+    return create_and_delete
 
 
 @pytest.fixture
