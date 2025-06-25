@@ -71,6 +71,7 @@ def git(
         args (str): The arguments to pass to the git command.
         cd_path (Path): The path to run the git command from.
         git_path (str): The path to the git executable.
+        expected_exit_code (int | None): The expected exit code of the command. If None, the default is 0.
 
     Raises:
         FileNotFoundError: If the git executable is not found.
@@ -110,12 +111,13 @@ def git(
 
 @functools.cache
 def locate_root(*, cd_path: Path = Path("."), check_marker=True) -> Path:
-    """Locate the root of the git repository.
+    """Locate the root of the kst repository.
 
     The result is cached to avoid repeated calls to git for the same path.
 
     Args:
         cd_path (Path): The path to run the git command from.
+        check_marker (bool): If True, check for the presence of a ".kst" file in the root of the repository.
 
     Returns:
         Path: The root of the repository.
@@ -127,39 +129,44 @@ def locate_root(*, cd_path: Path = Path("."), check_marker=True) -> Path:
     """
 
     cd_path = cd_path.expanduser().resolve()
-    console.debug(f"Received git repository root search path: {cd_path}")
+    console.debug(f"Received repository root search path: {cd_path}")
 
-    # Search for a existing parent directory to start the search from
-    if not cd_path.is_dir():
-        for parent in cd_path.expanduser().resolve().parents:
-            if parent == parent.parent:
-                # Reached the root of the filesystem
-                msg = f"Failed to locate an existing parent directory for {cd_path}"
-                console.error(msg)
-                raise InvalidRepositoryError(msg)
-            if parent.is_dir():
-                cd_path = parent
-                break
+    # Locate an existing parent directory to search from.
+    existing_dir = next((p for p in (cd_path, *cd_path.parents) if p.is_dir()), None)
+    if existing_dir is None or existing_dir == Path(existing_dir.anchor):
+        msg = f"Failed to locate an existing parent directory for {cd_path}"
+        console.error(msg)
+        raise InvalidRepositoryError(msg)
 
-    # Locate the root of the repository at cd_path if one exists
-    console.debug(f"Starting git repository search from {cd_path}")
+    # Locate the root of the git repository if one exists
+    console.debug(f"Starting git repository search from {existing_dir}")
     try:
-        result = git("rev-parse", "--show-toplevel", cd_path=cd_path, expected_exit_code=0)
+        result = git("rev-parse", "--show-toplevel", cd_path=existing_dir, expected_exit_code=0)
         console.debug(f"Located git repository root at {result.stdout.strip()}")
     except GitRepositoryError as error:
-        msg = f"Failed to locate the root of the repository for {cd_path}"
+        msg = f"{cd_path} is not part of a valid Git repository."
         console.error(msg)
         raise InvalidRepositoryError(msg) from error
 
-    root = Path(result.stdout.strip()).expanduser().resolve()
+    git_root = Path(result.stdout.strip()).expanduser().resolve()
+    if not check_marker:
+        # If we are not checking for a marker, call off the search and return the git root
+        return git_root
 
-    if check_marker and not (root / ".kst").is_file():
-        console.error("The repository does not contain a .kst file at its root.")
+    # Search for a ".kst" file located in the current or any parent directory
+    # Search is limited to the git root to avoid searching outside the repository
+    if kst_root := next(
+        (p for p in (existing_dir, *existing_dir.parents) if p.is_relative_to(git_root) and (p / ".kst").is_file()),
+        None,
+    ):
+        console.debug(f"Located kst repository root at {kst_root}")
+        return kst_root
+    else:
+        console.error("The git repository does not contain a .kst file. Unable to locate kst repository root.")
         raise InvalidRepositoryError(
             "The repository does not appear to be a Kandji Sync Toolkit repository. If it should be, "
-            'please make sure a ".kst" file exists in the root of the repository.'
+            'please make sure a ".kst" file exists in the repository.'
         )
-    return root
 
 
 class GitStatus(StrEnum):
@@ -199,11 +206,13 @@ class GitStatus(StrEnum):
 StatusPath = tuple[GitStatus, Path]
 
 
-def changed_paths(*, cd_path: Path = Path("."), stage: bool = False) -> list[StatusPath]:
+def changed_paths(*, cd_path: Path = Path("."), stage: bool = False, scope: Path | None = None) -> list[StatusPath]:
     """Get a list of changed paths in the repository.
 
     Args:
         cd_path (Path): The path to run the git command from.
+        stage (bool): If True, return staged changes.
+        scope (Path | None): If provided, only return changes within this path.
 
     Returns:
         list[Path]: A list of changed paths.
@@ -216,6 +225,8 @@ def changed_paths(*, cd_path: Path = Path("."), stage: bool = False) -> list[Sta
     cmd = ["diff", "--name-status"]
     if stage:
         cmd.append("--staged")
+    if scope is not None:
+        cmd.extend(["--", str(scope)])
 
     result = git(*cmd, cd_path=cd_path, expected_exit_code=0)
 
@@ -233,12 +244,14 @@ def generate_commit_body(repo: Path, stage: bool = False) -> str:
         "Scripts": defaultdict[str, set[Path]](set),
         "Other": defaultdict[str, set[Path]](set),
     }
-    root = locate_root(cd_path=repo, check_marker=False)
+
+    git_root = locate_root(cd_path=repo, check_marker=False)
+    kst_root = locate_root(cd_path=repo, check_marker=True)
     commit_body = ""
-    for status, path in changed_paths(cd_path=root, stage=stage):
-        if RepositoryDirectory.PROFILES in path.parts:
+    for status, path in changed_paths(cd_path=git_root, stage=stage, scope=kst_root):
+        if path.is_relative_to(kst_root / RepositoryDirectory.PROFILES):
             changed["Profiles"][status].add(path)
-        elif RepositoryDirectory.SCRIPTS in path.parts:
+        elif path.is_relative_to(kst_root / RepositoryDirectory.SCRIPTS):
             changed["Scripts"][status].add(path)
         else:
             changed["Other"][status].add(path)
@@ -247,7 +260,7 @@ def generate_commit_body(repo: Path, stage: bool = False) -> str:
         for status, paths in statuses.items():
             commit_body += f"--- {key} {status} ---\n"
             for path in sorted(paths):
-                commit_body += f"* {path.relative_to(root)}\n"
+                commit_body += f"* {path.relative_to(git_root)}\n"
             commit_body += "\n"
 
     return commit_body.strip()
@@ -262,19 +275,20 @@ def commit_all_changes(
         cd_path (Path): The path to run the git command from.
         message (str): The commit message.
         scope (Path | None): The path to add to the staging area. If None, all changes are added.
+        include_body (bool): If True, include a generated commit body with the changes in the commit message.
 
     Raises:
         GitRepositoryError: If the command fails.
 
     """
 
-    root = locate_root(cd_path=cd_path, check_marker=False)
+    git_root = locate_root(cd_path=cd_path, check_marker=False)
 
-    git("reset", cd_path=root, expected_exit_code=0)
-    if scope is None:
-        git("add", "--all", cd_path=root, expected_exit_code=0)
-    else:
-        git("add", str(scope), cd_path=root, expected_exit_code=0)
+    # Set scope to kst root if not provided
+    scope = scope if scope is not None else locate_root(cd_path=cd_path, check_marker=True)
+
+    git("reset", cd_path=git_root, expected_exit_code=0)
+    git("add", "--", str(scope), cd_path=git_root, expected_exit_code=0)
 
     try:
         # An exit code of 1 indicates that there are changes to commit

@@ -232,9 +232,9 @@ def script_directory(tmp_path, script_directory_factory) -> Path:
 
 
 @pytest.fixture
-def scripts_repo(request, tmp_path_repo, script_directory_factory) -> Path:
+def scripts_repo(request, kst_repo, script_directory_factory) -> Path:
     """Create a repository directory with child script directories populated."""
-    scripts_repo_path = tmp_path_repo / "scripts"
+    scripts_repo_path = kst_repo / "scripts"
     scripts_repo_path.mkdir(exist_ok=True)
 
     marker = request.node.get_closest_marker("script_count")
@@ -254,7 +254,7 @@ def scripts_repo_obj(scripts_repo: Path) -> Repository[CustomScript]:
 
 
 @pytest.fixture
-def local_remote_changes(
+def scripts_lrc(
     scripts_repo_obj: Repository[CustomScript],
 ) -> tuple[Repository[CustomScript], Repository[CustomScript], ChangesDict[CustomScript]]:
     """Prepare local and remote repositories with changes."""
@@ -335,11 +335,11 @@ def local_remote_changes(
 @pytest.fixture
 def patch_scripts_endpoints(
     monkeypatch,
-    local_remote_changes: tuple[Repository[CustomScript], Repository[CustomScript], ChangesDict[CustomScript]],
+    scripts_lrc: tuple[Repository[CustomScript], Repository[CustomScript], ChangesDict[CustomScript]],
     response_factory,
 ) -> dict[str, int]:
     """Patch the scripts endpoints for testing."""
-    _, remote, _ = local_remote_changes
+    _, remote, _ = scripts_lrc
     called_counter = {"get": 0, "list": 0, "create": 0, "update": 0, "delete": 0}
 
     def fake_get_script(self, id):
@@ -407,8 +407,8 @@ def patch_scripts_endpoints(
 
 @pytest.fixture
 def scripts_response(
-    local_remote_changes: tuple[Repository[CustomScript], Repository[CustomScript], ChangesDict[CustomScript]],
+    scripts_lrc: tuple[Repository[CustomScript], Repository[CustomScript], ChangesDict[CustomScript]],
 ) -> PayloadList:
-    _, remote, _ = local_remote_changes
+    _, remote, _ = scripts_lrc
     response = [script.to_api_payload() for script in remote.values()]
     return PayloadList(count=len(response), results=response)

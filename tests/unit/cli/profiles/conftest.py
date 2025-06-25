@@ -14,13 +14,13 @@ from kst.cli.common import (
 )
 from kst.diff import ChangeType
 from tests.fixtures.profiles import (
-    local_remote_changes,
     mobileconfig_content_factory,
     mobileconfig_data_factory,
     patch_profiles_endpoints,
     profile_directory_factory,
     profile_info_content_factory,
     profile_info_data_factory,
+    profiles_lrc,
     profiles_repo,
     profiles_repo_obj,
     profiles_response,
@@ -28,9 +28,9 @@ from tests.fixtures.profiles import (
 
 
 @pytest.fixture(params=(True, False), ids=("allow_delete", "no_allow_delete"))
-def prepared_push_actions(request, local_remote_changes) -> list[PreparedAction]:
+def prepared_push_actions(request, profiles_lrc) -> list[PreparedAction]:
     """Prepare a test set of api actions for the of profiles."""
-    local_repo, _, _ = local_remote_changes
+    local_repo, _, _ = profiles_lrc
 
     allowed_types = [ActionType.CREATE, ActionType.UPDATE]
     if request.param:

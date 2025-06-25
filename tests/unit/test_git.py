@@ -163,6 +163,20 @@ class TestLocateRoot:
         with pytest.raises(InvalidRepositoryError, match=r"Failed to locate an existing parent directory"):
             git.locate_root(cd_path=Path("/non_existent/path.txt"))
 
+    def test_root_marker_in_subdir(self, git_repo):
+        """Ensure the locate_root function returns the root of the repository when the marker is in a subdirectory."""
+        subdir = git_repo / "subdir"
+        subdir.mkdir()
+        (subdir / ".kst").touch()
+        assert git.locate_root(cd_path=subdir / "another_dir", check_marker=True) == git_repo / "subdir"
+
+    def test_git_root_marker_in_subdir(self, git_repo):
+        """Ensure the locate_root function returns the root of the git repository when the check marker is False and the marker is in a subdirectory."""
+        subdir = git_repo / "subdir"
+        subdir.mkdir()
+        (subdir / ".kst").touch()
+        assert git.locate_root(cd_path=subdir, check_marker=False) == git_repo
+
     def test_check_marker(self, git_repo):
         with pytest.raises(InvalidRepositoryError, match="does not appear to be a Kandji Sync Toolkit repository"):
             git.locate_root(cd_path=git_repo, check_marker=True)
@@ -171,72 +185,81 @@ class TestLocateRoot:
 class TestCommitAllChanges:
     """Tests for the commit_all_changes function."""
 
-    def test_no_changes(self, git_repo, caplog):
+    def test_no_changes(self, kst_repo, caplog):
         """Ensure the commit_all_changes function does nothing when there are no changes."""
         caplog.set_level(logging.DEBUG)
-        git.commit_all_changes(cd_path=git_repo, message="test", include_body=False)
+        git.commit_all_changes(cd_path=kst_repo, message="test", include_body=False)
         assert "No changes to commit" in caplog.text
 
-    def test_unstaged_changes(self, git_repo, caplog):
+    def test_unstaged_changes(self, kst_repo, caplog):
         """Ensure the commit_all_changes function stages and commits unstaged changes."""
         caplog.set_level(logging.DEBUG)
-        (git_repo / "file01.txt").write_text("test")
-        (git_repo / "file02.txt").write_text("test2")
-        git.commit_all_changes(cd_path=git_repo, message="test commit", include_body=False)
+        (kst_repo / "file01.txt").write_text("test")
+        (kst_repo / "file02.txt").write_text("test2")
+        git.commit_all_changes(cd_path=kst_repo, message="test commit", include_body=False)
         assert "Changes committed. 2 files changed," in caplog.text
-        status = git.git("log", "--oneline", "-1", cd_path=git_repo)
+        status = git.git("log", "--oneline", "-1", cd_path=kst_repo)
         assert "test commit" in status.stdout
 
-    def test_staged_changes(self, git_repo, caplog):
+    def test_staged_changes(self, kst_repo, caplog):
         """Ensure the commit_all_changes function commits staged changes."""
         caplog.set_level(logging.DEBUG)
-        (git_repo / "file01.txt").write_text("test")
-        (git_repo / "file02.txt").write_text("test2")
-        git.git("add", "--all", cd_path=git_repo)
-        if git.git("diff", "--staged", "--exit-code", cd_path=git_repo).returncode != 1:
+        (kst_repo / "file01.txt").write_text("test")
+        (kst_repo / "file02.txt").write_text("test2")
+        git.git("add", "--all", cd_path=kst_repo)
+        if git.git("diff", "--staged", "--exit-code", cd_path=kst_repo).returncode != 1:
             pytest.fail("Failed to stage changes for test.")
-        git.commit_all_changes(cd_path=git_repo, message="test commit", include_body=False)
+        git.commit_all_changes(cd_path=kst_repo, message="test commit", include_body=False)
         assert "Changes committed. 2 files changed," in caplog.text
-        status = git.git("log", "--oneline", "-1", cd_path=git_repo)
+        status = git.git("log", "--oneline", "-1", cd_path=kst_repo)
         assert "test commit" in status.stdout
 
-    def test_commit_with_scope(self, tmp_path_repo: Path):
-        profile_path = tmp_path_repo / "profiles/Test Profile"
+    def test_commit_with_scope(self, kst_repo: Path):
+        profile_path = kst_repo / "profiles/Test Profile"
         profile_path.mkdir(parents=True)
         (profile_path / "info.yaml").write_text("test")
         (profile_path / "profile.mobileconfig").write_text("test")
 
-        script_path = tmp_path_repo / "scripts/Test Script"
+        script_path = kst_repo / "scripts/Test Script"
         script_path.mkdir(parents=True)
         (script_path / "info.yaml").write_text("test")
         (script_path / "audit.sh").write_text("test")
         (script_path / "remediation.sh").write_text("test")
 
-        result = git.git("status", cd_path=tmp_path_repo)
+        result = git.git("status", cd_path=kst_repo)
         assert "profiles/" in result.stdout
         assert "scripts/" in result.stdout
-        git.commit_all_changes(cd_path=tmp_path_repo, message="test commit", scope=tmp_path_repo / "profiles")
-        result = git.git("status", cd_path=tmp_path_repo)
+        git.commit_all_changes(cd_path=kst_repo, message="test commit", scope=kst_repo / "profiles")
+        result = git.git("status", cd_path=kst_repo)
         assert "profiles/" not in result.stdout
         assert "scripts/" in result.stdout
 
 
-def test_generate_commit_body(tmp_path_repo: Path):
+def test_generate_commit_body(kst_repo: Path):
     """Ensure the generate_commit_body function generates the expected commit body."""
 
-    profile_path = tmp_path_repo / "profiles/Test Profile"
+    profile_path = kst_repo / "profiles/Test Profile"
     profile_path.mkdir(parents=True)
     (profile_path / "info.yaml").write_text("test")
     (profile_path / "profile.mobileconfig").write_text("test")
 
-    script_path = tmp_path_repo / "scripts/Test Script"
+    script_path = kst_repo / "scripts/Test Script"
     script_path.mkdir(parents=True)
     (script_path / "info.yaml").write_text("test")
     (script_path / "audit.sh").write_text("test")
     (script_path / "remediation.sh").write_text("test")
 
-    git.git("add", "--all", cd_path=tmp_path_repo)
-    message_body = git.generate_commit_body(repo=tmp_path_repo, stage=True)
+    (kst_repo / "README.md").write_text("# Kandji Sync Toolkit Repository")
+
+    # Check that the commit body reflects the scope
+    git.git("add", str(kst_repo / "profiles"), cd_path=kst_repo)
+    message_body = git.generate_commit_body(repo=kst_repo, stage=True)
+    assert message_body == (
+        "--- Profiles Added ---\n* profiles/Test Profile/info.yaml\n* profiles/Test Profile/profile.mobileconfig"
+    )
+
+    git.git("add", "--all", cd_path=kst_repo)
+    message_body = git.generate_commit_body(repo=kst_repo, stage=True)
     assert message_body == (
         "--- Profiles Added ---\n"
         "* profiles/Test Profile/info.yaml\n"
@@ -248,9 +271,9 @@ def test_generate_commit_body(tmp_path_repo: Path):
         "* scripts/Test Script/remediation.sh\n"
         "\n"
         "--- Other Added ---\n"
-        "* .kst"
+        "* README.md"
     )
-    git.git("commit", "-m", "create files", cd_path=tmp_path_repo)
+    git.git("commit", "-m", "create files", cd_path=kst_repo)
 
     (profile_path / "info.yaml").write_text("changed")
     (profile_path / "profile.mobileconfig").write_text("changed")
@@ -259,8 +282,8 @@ def test_generate_commit_body(tmp_path_repo: Path):
     (script_path / "audit.sh").write_text("changed")
     (script_path / "remediation.sh").write_text("changed")
 
-    git.git("add", "--all", cd_path=tmp_path_repo)
-    message_body = git.generate_commit_body(repo=tmp_path_repo, stage=True)
+    git.git("add", "--all", cd_path=kst_repo)
+    message_body = git.generate_commit_body(repo=kst_repo, stage=True)
     assert message_body == (
         "--- Profiles Modified ---\n"
         "* profiles/Test Profile/info.yaml\n"
@@ -271,12 +294,12 @@ def test_generate_commit_body(tmp_path_repo: Path):
         "* scripts/Test Script/info.yaml\n"
         "* scripts/Test Script/remediation.sh"
     )
-    git.git("commit", "-m", "modify files", cd_path=tmp_path_repo)
+    git.git("commit", "-m", "modify files", cd_path=kst_repo)
 
     shutil.rmtree(profile_path)
     shutil.rmtree(script_path)
-    git.git("add", "--all", cd_path=tmp_path_repo)
-    message_body = git.generate_commit_body(repo=tmp_path_repo, stage=True)
+    git.git("add", "--all", cd_path=kst_repo)
+    message_body = git.generate_commit_body(repo=kst_repo, stage=True)
     assert message_body == (
         "--- Profiles Deleted ---\n"
         "* profiles/Test Profile/info.yaml\n"

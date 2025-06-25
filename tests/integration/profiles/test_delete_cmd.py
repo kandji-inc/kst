@@ -20,9 +20,9 @@ def test_help():
     assert "Made with ❤ by Kandji" in result.stdout
 
 
-@pytest.mark.usefixtures("patch_profiles_endpoints", "tmp_path_repo_cd")
-def test_all_dry_run(local_remote_changes):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("patch_profiles_endpoints", "kst_repo_cd")
+def test_all_dry_run(profiles_lrc):
+    local, _, _ = profiles_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomProfile) == local
@@ -40,9 +40,9 @@ def test_all_dry_run(local_remote_changes):
     assert Repository.load_path(model=CustomProfile) == local
 
 
-@pytest.mark.usefixtures("patch_profiles_endpoints", "tmp_path_repo_cd")
-def test_all(local_remote_changes):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("patch_profiles_endpoints", "kst_repo_cd")
+def test_all(profiles_lrc):
+    local, _, _ = profiles_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomProfile) == local
@@ -67,9 +67,9 @@ def test_all(local_remote_changes):
     assert len(Repository.load_path(model=CustomProfile)) == 0
 
 
-@pytest.mark.usefixtures("patch_profiles_endpoints", "tmp_path_repo_cd")
-def test_by_id_and_path(local_remote_changes):
-    pre_local, remote, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_profiles_endpoints", "kst_repo_cd")
+def test_by_id_and_path(profiles_lrc):
+    pre_local, remote, changes = profiles_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomProfile) == pre_local
@@ -117,9 +117,9 @@ def test_by_id_and_path(local_remote_changes):
             assert profile_id in post_local
 
 
-@pytest.mark.usefixtures("tmp_path_repo_cd")
-def test_local_only(local_remote_changes):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("kst_repo_cd")
+def test_local_only(profiles_lrc):
+    local, _, _ = profiles_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomProfile) == local
@@ -141,9 +141,9 @@ def test_local_only(local_remote_changes):
     assert len(Repository.load_path(model=CustomProfile)) == 0
 
 
-@pytest.mark.usefixtures("tmp_path_repo_cd")
-def test_remote_only(local_remote_changes, patch_profiles_endpoints):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("kst_repo_cd")
+def test_remote_only(profiles_lrc, patch_profiles_endpoints):
+    local, _, _ = profiles_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomProfile) == local
@@ -169,7 +169,7 @@ def test_remote_only(local_remote_changes, patch_profiles_endpoints):
     assert Repository.load_path(model=CustomProfile) == local
 
 
-@pytest.mark.usefixtures("patch_profiles_endpoints", "local_remote_changes", "tmp_path_repo_cd")
+@pytest.mark.usefixtures("patch_profiles_endpoints", "profiles_lrc", "kst_repo_cd")
 def test_invalid_id():
     random_id = str(uuid4())
     result = runner.invoke(app, ["profile", "delete", "--id", random_id])
@@ -178,9 +178,9 @@ def test_invalid_id():
     assert f"{random_id} not found in local or remote" in result.stderr
 
 
-@pytest.mark.usefixtures("patch_profiles_endpoints", "tmp_path_repo_cd")
-def test_invalid_path(local_remote_changes):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("patch_profiles_endpoints", "kst_repo_cd")
+def test_invalid_path(profiles_lrc):
+    local, _, _ = profiles_lrc
 
     missing_path = Path("profiles/invalid")
     assert not missing_path.exists()

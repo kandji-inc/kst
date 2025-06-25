@@ -45,9 +45,9 @@ def test_help():
     assert "Made with ❤ by Kandji" in result.stdout
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_all_dry_run(local_remote_changes):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_all_dry_run(scripts_lrc):
+    local, _, _ = scripts_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomScript) == local
@@ -67,9 +67,9 @@ def test_all_dry_run(local_remote_changes):
     assert Repository.load_path(model=CustomScript) == local
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_all_clean(local_remote_changes):
-    local, _, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_all_clean(scripts_lrc):
+    local, _, changes = scripts_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomScript) == local
@@ -108,9 +108,9 @@ def test_all_clean(local_remote_changes):
     assert deleted_id not in repo
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_all_force(local_remote_changes):
-    local, _, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_all_force(scripts_lrc):
+    local, _, changes = scripts_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomScript) == local
@@ -154,9 +154,9 @@ def test_all_force(local_remote_changes):
     compare_script_object(remote_script, repo[remote_script.id], {"sync_hash"})
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_by_id_and_path(local_remote_changes):
-    local, _, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_by_id_and_path(scripts_lrc):
+    local, _, changes = scripts_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomScript) == local
@@ -206,7 +206,7 @@ def test_by_id_and_path(local_remote_changes):
         compare_script_object(remote_script, repo[remote_script.id], {"sync_hash"})
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "local_remote_changes", "tmp_path_repo_cd")
+@pytest.mark.usefixtures("patch_scripts_endpoints", "scripts_lrc", "kst_repo_cd")
 def test_invalid_id():
     random_id = str(uuid4())
     result = runner.invoke(app, ["script", "pull", "--force", "--id", random_id])
@@ -215,9 +215,9 @@ def test_invalid_id():
     assert f"{random_id} not found in" in result.stderr
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_invalid_path(local_remote_changes):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_invalid_path(scripts_lrc):
+    local, _, _ = scripts_lrc
 
     missing_path = Path("scripts/invalid")
     assert not missing_path.exists()
@@ -227,9 +227,9 @@ def test_invalid_path(local_remote_changes):
     assert "does not exist." in result.stderr
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_add_remediation_script(local_remote_changes):
-    local, remote, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_add_remediation_script(scripts_lrc):
+    local, remote, changes = scripts_lrc
 
     # add a remediation script to the remote repo
     script_id = changes[ChangeType.UPDATE_REMOTE][0][1].id
@@ -245,9 +245,9 @@ def test_add_remediation_script(local_remote_changes):
     assert updated_local_script.remediation.content == "echo 'Hello World!'"
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_remove_remediation_script(local_remote_changes):
-    local, remote, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_remove_remediation_script(scripts_lrc):
+    local, remote, changes = scripts_lrc
 
     # add a remediation script to the remote repo
     script_id = changes[ChangeType.UPDATE_REMOTE][0][1].id

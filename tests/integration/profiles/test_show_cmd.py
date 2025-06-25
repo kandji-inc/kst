@@ -30,9 +30,9 @@ def test_help(extra_args: list[str]):
         pytest.param(False, True, True, id="parent-remote"),
     ],
 )
-@pytest.mark.usefixtures("tmp_path_repo_cd")
-def test_show_profile(local_remote_changes, patch_profiles_endpoints, by_id: bool, pass_remote: bool, by_parent: bool):
-    local, remote, _ = local_remote_changes
+@pytest.mark.usefixtures("kst_repo_cd")
+def test_show_profile(profiles_lrc, patch_profiles_endpoints, by_id: bool, pass_remote: bool, by_parent: bool):
+    local, remote, _ = profiles_lrc
 
     cmd = ["profile", "show"]
     if pass_remote:
@@ -72,8 +72,8 @@ def test_show_profile(local_remote_changes, patch_profiles_endpoints, by_id: boo
     assert profile.name in result.stdout
 
 
-def test_show_from_outside_repo(local_remote_changes):
-    local, _, _ = local_remote_changes
+def test_show_from_outside_repo(profiles_lrc):
+    local, _, _ = profiles_lrc
     profile = random.choice(list(local.values()))
 
     result = runner.invoke(app, ["profile", "show", "--repo", str(local.root), profile.id])
@@ -84,8 +84,8 @@ def test_show_from_outside_repo(local_remote_changes):
     assert profile.name in result.stdout
 
 
-def test_show_from_outside_repo_with_path(local_remote_changes):
-    local, _, _ = local_remote_changes
+def test_show_from_outside_repo_with_path(profiles_lrc):
+    local, _, _ = profiles_lrc
     profile = random.choice(list(local.values()))
 
     result = runner.invoke(app, ["profile", "show", str(profile.profile_path)])
@@ -96,7 +96,7 @@ def test_show_from_outside_repo_with_path(local_remote_changes):
     assert profile.name in result.stdout
 
 
-def test_show_long_name_yaml(tmp_path_repo_cd):
+def test_show_long_name_yaml(kst_repo_cd):
     # Create a profile with a long name
     long_name = "a" * 10000
     result = runner.invoke(app, ["profile", "new", "--name", long_name])

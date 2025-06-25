@@ -20,9 +20,9 @@ runner = CliRunner(mix_stderr=False)
         pytest.param(["--remote"], id="remote"),
     ],
 )
-@pytest.mark.usefixtures("tmp_path_repo_cd")
-def test_list_table(local_remote_changes, patch_profiles_endpoints, extra_args):
-    _, _, changes = local_remote_changes
+@pytest.mark.usefixtures("kst_repo_cd")
+def test_list_table(profiles_lrc, patch_profiles_endpoints, extra_args):
+    _, _, changes = profiles_lrc
 
     result = runner.invoke(app, ["profile", "list", *extra_args])
 
@@ -76,9 +76,9 @@ def test_list_table(local_remote_changes, patch_profiles_endpoints, extra_args):
         pytest.param("plist", id="plist"),
     ],
 )
-@pytest.mark.usefixtures("tmp_path_repo_cd")
-def test_list_format(local_remote_changes, patch_profiles_endpoints, format, only_arg):
-    local, remote, changes = local_remote_changes
+@pytest.mark.usefixtures("kst_repo_cd")
+def test_list_format(profiles_lrc, patch_profiles_endpoints, format, only_arg):
+    local, remote, changes = profiles_lrc
     outfile = Path("outfile")
 
     result = runner.invoke(app, ["profile", "list", "--output", str(outfile), "--format", format, *only_arg])

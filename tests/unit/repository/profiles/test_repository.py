@@ -20,7 +20,7 @@ def test_init(profiles_list):
 class TestLoadPath:
     """Test cases for the load_path method"""
 
-    @pytest.mark.usefixtures("profiles_repo", "tmp_path_repo_cd")
+    @pytest.mark.usefixtures("profiles_repo", "kst_repo_cd")
     def test_from_cwd(self):
         """Ensure loading defaults to cwd when no args are passed."""
         repo = Repository.load_path(model=CustomProfile)

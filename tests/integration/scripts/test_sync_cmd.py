@@ -45,9 +45,9 @@ def test_help():
     assert "Made with ❤ by Kandji" in result.stdout
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_all_dry_run(local_remote_changes):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_all_dry_run(scripts_lrc):
+    local, _, _ = scripts_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomScript) == local
@@ -68,9 +68,9 @@ def test_all_dry_run(local_remote_changes):
     assert Repository.load_path(model=CustomScript) == local
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_all_force_push(local_remote_changes):
-    pre_local, _, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_all_force_push(scripts_lrc):
+    pre_local, _, changes = scripts_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomScript) == pre_local
@@ -125,9 +125,9 @@ def test_all_force_push(local_remote_changes):
         )
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_all_force_pull(local_remote_changes):
-    pre_local, _, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_all_force_pull(scripts_lrc):
+    pre_local, _, changes = scripts_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomScript) == pre_local
@@ -181,9 +181,9 @@ def test_all_force_pull(local_remote_changes):
         )
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_by_id_and_path(local_remote_changes):
-    pre_local, _, changes = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_by_id_and_path(scripts_lrc):
+    pre_local, _, changes = scripts_lrc
 
     # Sanity check that local repo matches disk
     assert Repository.load_path(model=CustomScript) == pre_local
@@ -257,7 +257,7 @@ def test_by_id_and_path(local_remote_changes):
     assert pre_local[conflicting_id] == post_local[conflicting_id]
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "local_remote_changes", "tmp_path_repo_cd")
+@pytest.mark.usefixtures("patch_scripts_endpoints", "scripts_lrc", "kst_repo_cd")
 def test_invalid_id():
     random_id = str(uuid4())
     result = runner.invoke(app, ["script", "sync", "--id", random_id])
@@ -266,9 +266,9 @@ def test_invalid_id():
     assert f"{random_id} not found in" in result.stderr
 
 
-@pytest.mark.usefixtures("patch_scripts_endpoints", "tmp_path_repo_cd")
-def test_invalid_path(local_remote_changes):
-    local, _, _ = local_remote_changes
+@pytest.mark.usefixtures("patch_scripts_endpoints", "kst_repo_cd")
+def test_invalid_path(scripts_lrc):
+    local, _, _ = scripts_lrc
 
     missing_path = Path("scripts/invalid")
     assert not missing_path.exists()

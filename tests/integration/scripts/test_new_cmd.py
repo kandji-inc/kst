@@ -18,7 +18,7 @@ def test_help():
     assert "Usage: kst script new [OPTIONS]" in result.stdout.replace("\n", "")
 
 
-def test_prompt_for_name(tmp_path_repo_cd):
+def test_prompt_for_name(kst_repo_cd):
     result = runner.invoke(app, ["script", "new"], input="Test Script\n")
 
     # Check that the command ran successfully
@@ -32,9 +32,9 @@ def test_prompt_for_name(tmp_path_repo_cd):
     assert script_dir in result.stdout.replace("\n", "")
 
 
-def test_empty_script(tmp_path_repo_cd):
+def test_empty_script(kst_repo_cd):
     result = runner.invoke(app, ["script", "new", "--name", "New Script"])
-    script_dir = tmp_path_repo_cd / "scripts/New Script"
+    script_dir = kst_repo_cd / "scripts/New Script"
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -65,7 +65,7 @@ def test_empty_script(tmp_path_repo_cd):
     assert not remediation_script.is_file()
 
 
-def test_empty_script_with_options(tmp_path_repo):
+def test_empty_script_with_options(kst_repo):
     result = runner.invoke(
         app,
         [
@@ -79,12 +79,12 @@ def test_empty_script_with_options(tmp_path_repo):
             "--restart",
             "--include-remediation",
             "--output",
-            str(tmp_path_repo / "scripts/subdirectory"),
+            str(kst_repo / "scripts/subdirectory"),
             "--format",
             "json",
         ],
     )
-    scripts_dir = tmp_path_repo / "scripts/subdirectory/Test Script"
+    scripts_dir = kst_repo / "scripts/subdirectory/Test Script"
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -126,10 +126,10 @@ def test_empty_script_with_invalid_output_path(tmp_path):
     assert "a valid kst repository" in result.stderr
 
 
-def test_import_script(script_file, tmp_path_repo_cd):
+def test_import_script(script_file, kst_repo_cd):
     script_content = script_file.read_text()
     result = runner.invoke(app, ["script", "new", "--name", "New Script", "--import-audit", str(script_file), "--move"])
-    script_dir = tmp_path_repo_cd / "scripts/New Script"  # Default path and name
+    script_dir = kst_repo_cd / "scripts/New Script"  # Default path and name
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -151,9 +151,9 @@ def test_import_script(script_file, tmp_path_repo_cd):
     assert script_content == audit_file.read_text()
 
 
-def test_import_script_copy(script_file, tmp_path_repo_cd):
+def test_import_script_copy(script_file, kst_repo_cd):
     result = runner.invoke(app, ["script", "new", "--name", "New Script", "--import-audit", str(script_file), "--copy"])
-    script_dir = tmp_path_repo_cd / "scripts/New Script"
+    script_dir = kst_repo_cd / "scripts/New Script"
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -167,11 +167,11 @@ def test_import_script_copy(script_file, tmp_path_repo_cd):
     assert hash(audit_file.read_bytes()) == hash(audit_file.read_bytes())
 
 
-def test_import_with_remediation(script_content, tmp_path_repo_cd):
-    audit_script = tmp_path_repo_cd / "audit.sh"
+def test_import_with_remediation(script_content, kst_repo_cd):
+    audit_script = kst_repo_cd / "audit.sh"
     audit_script.write_text(script_content)
 
-    remediation_script = tmp_path_repo_cd / "remediation.sh"
+    remediation_script = kst_repo_cd / "remediation.sh"
     remediation_script.write_text(script_content)
 
     result = runner.invoke(
@@ -187,7 +187,7 @@ def test_import_with_remediation(script_content, tmp_path_repo_cd):
             str(remediation_script),
         ],
     )
-    script_dir = tmp_path_repo_cd / "scripts/New Script"  # Default path and name
+    script_dir = kst_repo_cd / "scripts/New Script"  # Default path and name
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -207,13 +207,13 @@ def test_import_with_remediation(script_content, tmp_path_repo_cd):
     assert info_file.is_file()
 
 
-def test_import_script_with_name_in_repo(script_file, tmp_path_repo_cd):
+def test_import_script_with_name_in_repo(script_file, kst_repo_cd):
     new_script_name = "Test Script Name"
     result = runner.invoke(
         app,
         ["script", "new", "--import-audit", str(script_file), "--name", new_script_name],
     )
-    script_dir = tmp_path_repo_cd / "scripts" / new_script_name
+    script_dir = kst_repo_cd / "scripts" / new_script_name
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -239,7 +239,7 @@ def test_import_external_script_from_outside_repo(caplog, script_file):
     )
 
 
-def test_existing_script_directory(tmp_path_repo_cd):
+def test_existing_script_directory(kst_repo_cd):
     # Create a profile directory to take the default path
     name = "New Script"
     runner.invoke(app, ["script", "new"], input=f"{name}\n")
@@ -249,7 +249,7 @@ def test_existing_script_directory(tmp_path_repo_cd):
         result = runner.invoke(app, ["script", "new"], input=f"{name}\n")
         assert result.exit_code == 0
 
-        script_dir = tmp_path_repo_cd / f"scripts/{name} ({count})"
+        script_dir = kst_repo_cd / f"scripts/{name} ({count})"
 
         # Check that command output contains the expected message
         assert "New script created at" in result.stdout

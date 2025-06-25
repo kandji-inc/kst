@@ -87,10 +87,10 @@ from kst.repository import CustomProfile
         ),
     ],
 )
-@pytest.mark.usefixtures("tmp_path_repo_cd", "patch_profiles_endpoints")
+@pytest.mark.usefixtures("kst_repo_cd", "patch_profiles_endpoints")
 def test_get_profile(
     caplog,
-    local_remote_changes,
+    profiles_lrc,
     patch_profiles_endpoints,
     config,
     profile_arg,
@@ -102,7 +102,7 @@ def test_get_profile(
     caplog.set_level(logging.DEBUG)
 
     # replace valid_id and valid_path with actual values
-    local, remote, _ = local_remote_changes
+    local, remote, _ = profiles_lrc
     repo = remote if pass_remote else local
     profile_id = profile_arg
     if profile_arg == "valid_id":

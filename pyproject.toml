@@ -158,7 +158,7 @@ help = "setup dev environment"
 default_item_type = "cmd"
 sequence = [
     "git stash push -u",
-    "git clean -dffx -e .venv -e .vscode -e .env",
+    "git clean -dffx -e .venv -e .vscode -e .idea -e .env",
 ]
 help = "Cleanup auto-generated untracked files"
 

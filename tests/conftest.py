@@ -147,7 +147,7 @@ def git_remote(tmp_path, git_repo: Path):
 
 
 @pytest.fixture
-def tmp_path_repo(tmp_path: Path) -> Path:
+def kst_repo(tmp_path: Path) -> Path:
     """Return a temporary directory for a repository."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
@@ -155,14 +155,16 @@ def tmp_path_repo(tmp_path: Path) -> Path:
     (repo_path / "profiles").mkdir()
     (repo_path / "scripts").mkdir()
     subprocess.run(["git", "-C", repo_path, "init"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", repo_path, "add", "--all"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", repo_path, "commit", "-m", "Initial commit"], check=True, capture_output=True)
     return repo_path
 
 
 @pytest.fixture
-def tmp_path_repo_cd(tmp_path_repo: Path) -> Generator[Path]:
+def kst_repo_cd(kst_repo: Path) -> Generator[Path]:
     """Change to the repository directory and return the path."""
-    with contextlib.chdir(tmp_path_repo):
-        yield tmp_path_repo
+    with contextlib.chdir(kst_repo):
+        yield kst_repo
 
 
 @pytest.fixture

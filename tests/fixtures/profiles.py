@@ -313,11 +313,11 @@ def profile_directory(request, tmp_path, profile_directory_factory) -> Path:
 
 @pytest.fixture
 def profiles_repo(
-    request: pytest.FixtureRequest, tmp_path_repo: Path, profile_directory_factory: Callable[..., tuple[Path, Path]]
+    request: pytest.FixtureRequest, kst_repo: Path, profile_directory_factory: Callable[..., tuple[Path, Path]]
 ) -> Path:
     """Create a repository directory with child profile directories populated."""
 
-    profiles_repo_path = tmp_path_repo / "profiles"
+    profiles_repo_path = kst_repo / "profiles"
     profiles_repo_path.mkdir(exist_ok=True)
 
     marker = request.node.get_closest_marker("profile_count")
@@ -356,7 +356,7 @@ def profiles_repo_obj_without_paths(profiles_list: list[CustomProfile]) -> Repos
 
 
 @pytest.fixture
-def local_remote_changes(
+def profiles_lrc(
     profiles_repo_obj: Repository[CustomProfile],
 ) -> tuple[Repository[CustomProfile], Repository[CustomProfile], ChangesDict[CustomProfile]]:
     """Prepare local and remote repositories with changes."""
@@ -434,10 +434,10 @@ def local_remote_changes(
 
 @pytest.fixture
 def patch_profiles_endpoints(
-    monkeypatch, local_remote_changes: tuple[Repository, Repository, ChangesDict], response_factory
+    monkeypatch, profiles_lrc: tuple[Repository, Repository, ChangesDict], response_factory
 ) -> dict[str, int]:
     """Patch the profiles endpoints for testing."""
-    _, remote, _ = local_remote_changes
+    _, remote, _ = profiles_lrc
     called_counter = {"get": 0, "list": 0, "create": 0, "update": 0, "delete": 0}
 
     def profile_to_response(profile: CustomProfile) -> CustomProfilePayload:
@@ -561,9 +561,9 @@ def patch_profiles_endpoints(
 
 @pytest.fixture
 def profiles_response(
-    local_remote_changes: tuple[Repository, Repository, ChangesDict],
+    profiles_lrc: tuple[Repository, Repository, ChangesDict],
 ) -> PayloadList:
-    _, remote, _ = local_remote_changes
+    _, remote, _ = profiles_lrc
 
     response = []
     for profile in remote.values():

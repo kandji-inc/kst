@@ -147,21 +147,19 @@ def test_api_config_prompt(
     assert log_out in caplog.text
 
 
-def test_validate_repo_path(tmp_path_repo):
+def test_validate_repo_path(kst_repo):
     # Test with no path and outside of repo
     with pytest.raises(typer.BadParameter):
         validate_repo_path()
 
     # Test with repo path passed from outside repo
-    assert tmp_path_repo == validate_repo_path(tmp_path_repo)
+    assert kst_repo == validate_repo_path(kst_repo)
 
     # Test validating subdirectory
-    profiles_path = tmp_path_repo / "profiles/subdir/Test Profile"
-    assert tmp_path_repo == validate_repo_path(profiles_path)
-    assert tmp_path_repo / RepositoryDirectory.PROFILES == validate_repo_path(
-        profiles_path, RepositoryDirectory.PROFILES
-    )
-    assert tmp_path_repo / RepositoryDirectory.SCRIPTS == validate_repo_path(profiles_path, RepositoryDirectory.SCRIPTS)
+    profiles_path = kst_repo / "profiles/subdir/Test Profile"
+    assert kst_repo == validate_repo_path(profiles_path)
+    assert kst_repo / RepositoryDirectory.PROFILES == validate_repo_path(profiles_path, RepositoryDirectory.PROFILES)
+    assert kst_repo / RepositoryDirectory.SCRIPTS == validate_repo_path(profiles_path, RepositoryDirectory.SCRIPTS)
 
     # Test validating wrong subdirectory
     with pytest.raises(typer.BadParameter):
@@ -215,9 +213,9 @@ def test_validate_repo_path(tmp_path_repo):
         ),
     ],
 )
-@pytest.mark.usefixtures("tmp_path_repo")
+@pytest.mark.usefixtures("kst_repo")
 def test_validate_output_path(caplog, tmp_path, cd_path, override_path, expectation, log_msg):
-    "Test the resolved output path when the command is run within a repository."
+    """Test the resolved output path when the command is run within a repository."""
     caplog.set_level(logging.DEBUG)
     with chdir(tmp_path / cd_path):
         with expectation as expected_path:
