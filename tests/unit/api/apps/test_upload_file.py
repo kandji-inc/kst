@@ -23,11 +23,11 @@ def test_upload_file_with_path(monkeypatch, response_factory, custom_apps_resour
         }
         return response_factory(200, json_data)
 
-    def mock_s3_post_request(self, url, data, files):
+    def mock_s3_post_request(self, url, data, files, extra_params):
         return response_factory(204, {})
 
     monkeypatch.setattr("kst.api.client.ApiClient.post", mock_post_request)
-    monkeypatch.setattr("kst.api.s3_client.S3ApiClient.post", mock_s3_post_request)
+    monkeypatch.setattr("kst.api.client.ApiClient.s3_post", mock_s3_post_request)
 
     temp_file = tmp_path / "test_upload.pkg"
     temp_file.write_text("This is a test file for upload.")
@@ -58,11 +58,11 @@ def test_upload_file_with_buffered_reader(monkeypatch, response_factory, custom_
             return response_factory(200, json_data)
         return response_factory(500, {"error": "Unexpected path"})
 
-    def mock_s3_post_request(self, url, data, files):
+    def mock_s3_post_request(self, url, data, files, extra_params):
         return response_factory(204, {})
 
     monkeypatch.setattr("kst.api.client.ApiClient.post", mock_post_request)
-    monkeypatch.setattr("kst.api.s3_client.S3ApiClient.post", mock_s3_post_request)
+    monkeypatch.setattr("kst.api.client.ApiClient.s3_post", mock_s3_post_request)
 
     temp_file = tmp_path / "test_upload.pkg"
     temp_file.write_text("This is a test file for upload.")
@@ -104,11 +104,11 @@ def test_upload_file_s3_upload_failure(monkeypatch, response_factory, custom_app
         }
         return response_factory(200, json_data)
 
-    def mock_s3_post_request_failure(self, url, data, files):
+    def mock_s3_post_request_failure(self, url, data, files, extra_params):
         return response_factory(403, {})
 
     monkeypatch.setattr("kst.api.client.ApiClient.post", mock_post_request)
-    monkeypatch.setattr("kst.api.s3_client.S3ApiClient.post", mock_s3_post_request_failure)
+    monkeypatch.setattr("kst.api.client.ApiClient.s3_post", mock_s3_post_request_failure)
 
     temp_file = tmp_path / "test_upload.pkg"
     temp_file.write_text("This is a test file for upload.")

@@ -19,7 +19,6 @@ def test_api_imports():
         "InstallEnforcement",
         "InstallType",
         "PayloadList",
-        "S3ApiClient",
         "SelfServiceCategoriesResource",
         "SelfServiceCategoryPayload",
     }

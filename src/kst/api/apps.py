@@ -88,7 +88,9 @@ class CustomAppsResource(ResourceBase):
 
         # Upload to S3
         files = [("file", (file_name, file_obj, "application/octet-stream"))]
-        response = self.s3_client.post(upload_response.post_url, data=upload_response.post_data, files=files)
+        response = self.client.s3_post(
+            upload_response.post_url, data=upload_response.post_data, files=files, extra_params={}
+        )
         if response.status_code != 204:
             raise ConnectionError(f"Failed to upload file to S3: {response.text}")
 

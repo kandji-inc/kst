@@ -10,7 +10,6 @@ from .payload import (
     SelfServiceCategoryPayload,
 )
 from .profiles import CustomProfilesResource
-from .s3_client import S3ApiClient
 from .scripts import CustomScriptsResource, ExecutionFrequency
 from .self_service import SelfServiceCategoriesResource
 
@@ -29,7 +28,6 @@ __all__ = [
     "InstallEnforcement",
     "InstallType",
     "PayloadList",
-    "S3ApiClient",
     "SelfServiceCategoriesResource",
     "SelfServiceCategoryPayload",
 ]
