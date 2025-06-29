@@ -30,9 +30,9 @@ def test_help(extra_args: list[str]):
         pytest.param(False, True, True, id="parent-remote"),
     ],
 )
-@pytest.mark.usefixtures("tmp_path_repo_cd")
-def test_show_script(local_remote_changes, patch_scripts_endpoints, by_id: bool, pass_remote: bool, by_parent: bool):
-    local, remote, _ = local_remote_changes
+@pytest.mark.usefixtures("kst_repo_cd")
+def test_show_script(scripts_lrc, patch_scripts_endpoints, by_id: bool, pass_remote: bool, by_parent: bool):
+    local, remote, _ = scripts_lrc
 
     cmd = ["script", "show"]
     if pass_remote:
@@ -72,8 +72,8 @@ def test_show_script(local_remote_changes, patch_scripts_endpoints, by_id: bool,
     assert script.name in result.stdout
 
 
-def test_show_from_outside_repo(local_remote_changes):
-    local, _, _ = local_remote_changes
+def test_show_from_outside_repo(scripts_lrc):
+    local, _, _ = scripts_lrc
     script = random.choice(list(local.values()))
 
     result = runner.invoke(app, ["script", "show", "--repo", str(local.root), script.id])
@@ -84,8 +84,8 @@ def test_show_from_outside_repo(local_remote_changes):
     assert script.name in result.stdout
 
 
-def test_show_from_outside_repo_with_path(local_remote_changes):
-    local, _, _ = local_remote_changes
+def test_show_from_outside_repo_with_path(scripts_lrc):
+    local, _, _ = scripts_lrc
     script = random.choice(list(local.values()))
 
     result = runner.invoke(app, ["script", "show", str(script.info_path.parent)])

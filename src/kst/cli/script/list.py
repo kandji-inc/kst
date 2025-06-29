@@ -61,7 +61,7 @@ def list_scripts(
     include: IncludeOption = [],
     exclude: ExcludeOption = [],
     format: FormatOption = OutputFormat.TABLE,
-    output: OutputOption = "-",  # type: ignore [reportArgumentType] "-" is understood by typer to mean stdout
+    output: OutputOption = "-",
     repo_str: RepoPathOption = ".",
     tenant_url: KandjiTenantOption = None,
     api_token: ApiTokenOption = None,

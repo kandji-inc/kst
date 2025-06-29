@@ -95,8 +95,8 @@ def patch_profiles_endpoints(monkeypatch):
         pytest.param(True, True, id="force_delete"),
     ],
 )
-def test_prepare_profile_actions(local_remote_changes, force_push, allow_delete):
-    _, _, changes = local_remote_changes
+def test_prepare_profile_actions(profiles_lrc, force_push, allow_delete):
+    _, _, changes = profiles_lrc
     actions = prepare_push_actions(changes, force_push=force_push, allow_delete=allow_delete)
 
     # Check that all actions have a profile
@@ -129,10 +129,10 @@ def test_prepare_profile_actions(local_remote_changes, force_push, allow_delete)
 
 
 @pytest.mark.usefixtures("patch_profiles_endpoints")
-def test_do_push(caplog, config, local_remote_changes, prepared_push_actions):
+def test_do_push(caplog, config, profiles_lrc, prepared_push_actions):
     """Test the ``do_push`` function."""
     caplog.set_level(logging.DEBUG)
-    local, _, _ = local_remote_changes
+    local, _, _ = profiles_lrc
 
     push_results = do_pushes(config=config, local_repo=local, actions=prepared_push_actions)
 

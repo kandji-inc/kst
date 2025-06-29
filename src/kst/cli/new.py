@@ -43,12 +43,14 @@ def new_repo(path_str: PathOption):
         raise typer.BadParameter(msg)
 
     # Check to make sure that the path is not already in a git repository.
+    git_root = None
     try:
-        root = git.locate_root(cd_path=path, check_marker=False)
+        git_root = git.locate_root(cd_path=path, check_marker=False)
+        kst_root = git.locate_root(cd_path=path, check_marker=True)
     except InvalidRepositoryError:
         pass
     else:
-        msg = f"The parent path {root} is already a git repository. Please choose another path."
+        msg = f"The parent path {kst_root} is already a kst repository. Please choose another path."
         console.error(msg)
         raise typer.BadParameter(msg)
 
@@ -62,8 +64,12 @@ def new_repo(path_str: PathOption):
 
     # Initialize the git repository and commit all files.
     try:
-        git.git("init", cd_path=path, expected_exit_code=0)
-        git.commit_all_changes(cd_path=path, message="Initial commit")
+        if git_root is None:
+            git.git("init", cd_path=path, expected_exit_code=0)
+            commit_msg = "Initial commit"
+        else:
+            commit_msg = "Create kst repository files"
+        git.commit_all_changes(cd_path=path, message=commit_msg)
     except FileNotFoundError:
         console.print_error(
             "A suitable Git executable was not found. Git is required for managing a kst repo. Please ensure Git is installed."

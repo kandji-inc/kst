@@ -21,6 +21,7 @@ def test_new(tmp_path):
     assert (repo / "README.md").is_file()
     assert (repo / ".gitignore").is_file()
     assert (repo / "profiles").is_dir()
+    assert (repo / "scripts").is_dir()
     assert (repo / ".git").is_dir()
 
 
@@ -35,5 +36,17 @@ def test_new_existing(tmp_path):
 def test_new_existing_git(git_repo):
     repo = git_repo / "test_repo"
     result = runner.invoke(app, ["new", str(repo)])
+    assert result.exit_code == 0
+    assert "Created a new kst repository at" in result.stdout
+    assert (repo / "README.md").is_file()
+    assert (repo / ".gitignore").is_file()
+    assert (repo / "profiles").is_dir()
+    assert (repo / "scripts").is_dir()
+    assert not (repo / ".git").is_dir()
+
+
+def test_new_existing_kst(kst_repo):
+    repo = kst_repo / "test_repo"
+    result = runner.invoke(app, ["new", str(repo)])
     assert result.exit_code == 2
-    assert "is already a git repository" in result.stderr
+    assert "is already a kst repository" in result.stderr

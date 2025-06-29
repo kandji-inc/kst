@@ -30,7 +30,7 @@ from kst.repository import PROFILE_RUNS_ON_PARAMS, CustomProfile, Repository
             1,
             False,
             pytest.raises(typer.Exit),
-            "Failed to locate the root of the repository",
+            "is not part of a valid Git repository",
             id="no_repo-one_id",
         ),
         pytest.param(True, 0, False, nullcontext(0), "", id="repo-no_ids"),
@@ -182,7 +182,7 @@ def test_get_local_profiles(
         pytest.param(False, 2, True, nullcontext(2), "", id="with_missing_ids"),
     ],
 )
-@pytest.mark.usefixtures("patch_profiles_endpoints", "local_remote_changes")
+@pytest.mark.usefixtures("patch_profiles_endpoints", "profiles_lrc")
 def test_get_remote_profiles(
     caplog,
     config,
@@ -244,8 +244,8 @@ def test_get_remote_profiles_connection_error(monkeypatch, caplog, config):
     assert "An error occurred while fetching: Connection Error" in caplog.text
 
 
-def test_filter_changes(local_remote_changes):
-    local_repo, remote_repo, expected_changes = local_remote_changes
+def test_filter_changes(profiles_lrc):
+    local_repo, remote_repo, expected_changes = profiles_lrc
     filtered_changes = filter_changes(local_repo, remote_repo)
     for change_type in ChangeType:
         result = sorted(filtered_changes[change_type], key=lambda x: x[0].id if x[0] is not None else "")

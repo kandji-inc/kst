@@ -19,9 +19,9 @@ def test_help():
     assert "Usage: kst profile new [OPTIONS]" in result.stdout.replace("\n", "")
 
 
-def test_empty_profile(tmp_path_repo_cd):
+def test_empty_profile(kst_repo_cd):
     result = runner.invoke(app, ["profile", "new", "--name", "New Profile"])
-    profile_dir = tmp_path_repo_cd / "profiles/New Profile"
+    profile_dir = kst_repo_cd / "profiles/New Profile"
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -57,7 +57,7 @@ def test_empty_profile(tmp_path_repo_cd):
     assert info_data["active"] is False
 
 
-def test_empty_profile_with_options(tmp_path_repo):
+def test_empty_profile_with_options(kst_repo):
     result = runner.invoke(
         app,
         [
@@ -73,12 +73,12 @@ def test_empty_profile_with_options(tmp_path_repo):
             "ipad",
             "--active",
             "--output",
-            str(tmp_path_repo / "profiles/subdirectory"),
+            str(kst_repo / "profiles/subdirectory"),
             "--format",
             "json",
         ],
     )
-    profile_dir = tmp_path_repo / "profiles/subdirectory/Test Profile"
+    profile_dir = kst_repo / "profiles/subdirectory/Test Profile"
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -125,9 +125,9 @@ def test_empty_profile_with_invalid_output_path(tmp_path):
     assert "of a valid kst repository" in result.stderr
 
 
-def test_import_profile(mobileconfig_data, mobileconfig_file, tmp_path_repo_cd):
+def test_import_profile(mobileconfig_data, mobileconfig_file, kst_repo_cd):
     result = runner.invoke(app, ["profile", "new", "--import", str(mobileconfig_file), "--move"])
-    profile_dir = tmp_path_repo_cd / "profiles" / mobileconfig_data["name"]
+    profile_dir = kst_repo_cd / "profiles" / mobileconfig_data["name"]
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -164,9 +164,9 @@ def test_import_profile(mobileconfig_data, mobileconfig_file, tmp_path_repo_cd):
     assert info_data["active"] is False
 
 
-def test_import_profile_copy(mobileconfig_data, mobileconfig_file, tmp_path_repo_cd):
+def test_import_profile_copy(mobileconfig_data, mobileconfig_file, kst_repo_cd):
     result = runner.invoke(app, ["profile", "new", "--import", str(mobileconfig_file), "--copy"])
-    profile_dir = tmp_path_repo_cd / "profiles" / mobileconfig_data["name"]
+    profile_dir = kst_repo_cd / "profiles" / mobileconfig_data["name"]
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -181,16 +181,16 @@ def test_import_profile_copy(mobileconfig_data, mobileconfig_file, tmp_path_repo
     assert hash(mobileconfig_file.read_bytes()) == hash(mobileconfig_file.read_bytes())
 
 
-def test_import_profile_with_name_in_repo(mobileconfig_file, tmp_path_repo_cd):
+def test_import_profile_with_name_in_repo(mobileconfig_file, kst_repo_cd):
     # Move the profile file into the repository
-    mobileconfig_file = shutil.move(mobileconfig_file, tmp_path_repo_cd / "profiles" / mobileconfig_file.name)
+    mobileconfig_file = shutil.move(mobileconfig_file, kst_repo_cd / "profiles" / mobileconfig_file.name)
 
     new_profile_name = "Test Profile"
     result = runner.invoke(
         app,
         ["profile", "new", "--name", "New Profile", "--import", str(mobileconfig_file), "--name", new_profile_name],
     )
-    profile_dir = tmp_path_repo_cd / "profiles" / new_profile_name
+    profile_dir = kst_repo_cd / "profiles" / new_profile_name
 
     # Check that the command ran successfully
     assert result.exit_code == 0
@@ -217,7 +217,7 @@ def test_import_external_profile_from_outside_repo(caplog, mobileconfig_file):
     )
 
 
-def test_existing_profile_directory(tmp_path_repo_cd):
+def test_existing_profile_directory(kst_repo_cd):
     # Create a profile directory to take the default path
     name = "New Profile"
     runner.invoke(app, ["profile", "new"], input=f"{name}\n")
@@ -227,7 +227,7 @@ def test_existing_profile_directory(tmp_path_repo_cd):
         result = runner.invoke(app, ["profile", "new"], input=f"{name}\n")
         assert result.exit_code == 0
 
-        profile_dir = tmp_path_repo_cd / f"profiles/{name} ({count})"
+        profile_dir = kst_repo_cd / f"profiles/{name} ({count})"
 
         # Check that command output contains the expected message
         assert "New profile created at" in result.stdout

@@ -1,4 +1,4 @@
-class Kst < Formula
+class KstAT101 < Formula
   include Language::Python::Virtualenv
 
   desc "Local management of Kandji custom resources"
