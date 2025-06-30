@@ -121,7 +121,9 @@ class ApiClient:
         """Convert a relative path to a fully qualified URL."""
         return urljoin(self._config.url, path)
 
-    def request(self, method: str, url: str, *args, **kwargs) -> requests.Response:
+    def request(
+        self, method: str, url: str, *args, extra_params: dict[str, str] = {"source": "kst"}, **kwargs
+    ) -> requests.Response:
         """Make a generic HTTP request.
 
         Handles logging and ensures the source query parameter is included.
@@ -138,8 +140,9 @@ class ApiClient:
         try:
             console.debug(f"Making {method} request to {url}")
 
-            # Add the source=kst param to all requests
-            kwargs["params"] = kwargs.get("params", {}) | {"source": "kst"}
+            # Add the extra_params to all requests
+            kwargs["params"] = kwargs.get("params", {})
+            kwargs["params"].update(extra_params)
 
             response = self.session.request(method, url, *args, **kwargs)
 
@@ -195,3 +198,30 @@ class ApiClient:
     def delete(self, path: str) -> requests.Response:
         """Make a DELETE HTTP request to the resolved API endpoint at path."""
         return self.request("DELETE", self._make_url(path))
+
+    def s3_post(
+        self,
+        url: str,
+        data: dict,
+        files: list[tuple[str, tuple[str, io.BufferedReader, str]]],
+        extra_params: dict[str, str],
+    ) -> requests.Response:
+        """Make a POST HTTP request to an S3 endpoint.
+
+        This method is used to upload files to S3 using the pre-signed URL provided by the API.
+        S3 requests should not include API authentication headers.
+
+        Args:
+            url (str): The pre-signed S3 URL to upload the file to.
+            data (dict): Additional data to include in the request.
+            files (list[tuple[str, tuple[str, io.BufferedReader, str]]]): Files to upload.
+
+        Returns:
+            requests.Response: The response object from the S3 request.
+        """
+        # S3 requires the auth headers to be cleared
+        self.session.headers.clear()
+        try:
+            return self.request("POST", url, data=data, files=files, extra_params=extra_params)
+        finally:
+            self._update_header()

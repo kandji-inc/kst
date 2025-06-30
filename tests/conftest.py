@@ -57,10 +57,12 @@ def no_http_requests(monkeypatch, request, response_factory):
     else:
 
         class TestSession(requests.sessions.Session):
-            """Adds a source=kst-test param to all requests."""
+            """Adds a source=kst-test param to all requests except S3 uploads."""
 
             def prepare_request(self, request):
-                request.params |= {"source": "kst-test"}
+                # Don't add source param to S3 requests (AWS won't accept it)
+                if not (request.url and "amazonaws.com" in request.url):
+                    request.params |= {"source": "kst-test"}
                 request = super().prepare_request(request)
                 return request
 
