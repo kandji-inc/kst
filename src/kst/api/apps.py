@@ -54,7 +54,7 @@ class CustomAppsResource(ResourceBase):
     _path = "/api/v1/library/custom-apps"
 
     def _upload_file(self, file: Path | BufferedReader) -> str:
-        """Upload a file to S3 with exponential backoff retry logic.
+        """Upload a file to S3.
 
         Args:
             file (Path | BufferedReader): File to upload (Path object or open BufferedReader)
@@ -233,6 +233,7 @@ class CustomAppsResource(ResourceBase):
                         )
                         sleep(2**attempt)
                         continue
+                console.error(f"Failed to create custom app: {e.response.text}")
                 raise
 
         raise ApiClientError(f"Failed to create custom app after {max_attempts} attempts.")
@@ -331,6 +332,8 @@ class CustomAppsResource(ResourceBase):
                         )
                         sleep(2**attempt)
                         continue
+                console.error(f"Failed to update custom app: {e.response.text}")
+                raise
 
         raise ApiClientError(f"Failed to update custom app after {max_attempts} attempts.")
 
