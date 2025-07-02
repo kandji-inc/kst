@@ -1,6 +1,9 @@
+from .apps import CustomAppsResource, InstallEnforcement, InstallType
 from .client import ApiClient, ApiConfig
 from .payload import (
     ApiPayloadType,
+    CustomAppPayload,
+    CustomAppUploadPayload,
     CustomProfilePayload,
     CustomScriptPayload,
     PayloadList,
@@ -14,11 +17,16 @@ __all__ = [
     "ApiClient",
     "ApiConfig",
     "ApiPayloadType",
+    "CustomAppPayload",
+    "CustomAppUploadPayload",
+    "CustomAppsResource",
     "CustomProfilePayload",
     "CustomProfilesResource",
     "CustomScriptPayload",
     "CustomScriptsResource",
     "ExecutionFrequency",
+    "InstallEnforcement",
+    "InstallType",
     "PayloadList",
     "SelfServiceCategoriesResource",
     "SelfServiceCategoryPayload",

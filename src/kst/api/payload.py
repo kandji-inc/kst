@@ -1,8 +1,8 @@
 from typing import Annotated, Generic, TypeVar
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, field_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator
 
-ApiPayloadType = TypeVar("ApiPayloadType", "CustomProfilePayload", "CustomScriptPayload")
+ApiPayloadType = TypeVar("ApiPayloadType", "CustomProfilePayload", "CustomScriptPayload", "CustomAppPayload")
 
 
 class CustomProfilePayload(BaseModel):
@@ -46,6 +46,47 @@ class CustomScriptPayload(BaseModel):
     show_in_self_service: bool | None = False
     self_service_category_id: str | None = None
     self_service_recommended: bool | None = None
+
+
+class CustomAppPayload(BaseModel):
+    """Payload model for custom app library API endpoints."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: Annotated[str, AfterValidator(lambda value: value.lower())]
+    name: str
+    sha256: str
+    file_key: str
+    file_url: str
+    file_size: int
+    file_updated: str
+    install_type: str = Field(description="Installation type", pattern="^(package|zip|image)$")
+    install_enforcement: str = Field(
+        description="Install enforcement type", pattern="^(install_once|continuously_enforce|no_enforcement)$"
+    )
+    unzip_location: str | None = None
+    restart: bool
+    audit_script: str
+    preinstall_script: str
+    postinstall_script: str
+    active: bool
+    description: str | None = None
+    version: str | None = None
+    created_at: str
+    updated_at: str
+    show_in_self_service: bool | None = False
+    self_service_category_id: str | None = None
+    self_service_recommended: bool | None = None
+
+
+class CustomAppUploadPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    expires: str
+    post_url: str
+    post_data: dict[str, str]
+    file_key: str
 
 
 class SelfServiceCategoryPayload(BaseModel):
