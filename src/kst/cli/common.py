@@ -58,6 +58,13 @@ ForceOption = Annotated[
         help="Overwrite instead of reporting conflicts.",
     ),
 ]
+NoGitOption = Annotated[
+    bool,
+    typer.Option(
+        "--no-git",
+        help="Skip automatic Git commits.",
+    ),
+]
 
 # Kandji Info Panel
 KandjiTenantOption = Annotated[
