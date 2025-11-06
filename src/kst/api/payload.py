@@ -27,6 +27,7 @@ class CustomProfilePayload(BaseModel):
     runs_on_ipad: bool = False
     runs_on_tv: bool = False
     runs_on_vision: bool = False
+    runs_on_windows: bool = False
 
 
 class CustomScriptPayload(BaseModel):
