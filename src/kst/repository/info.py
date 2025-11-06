@@ -17,7 +17,7 @@ from kst.exceptions import InvalidInfoFileError
 from kst.utils import yaml
 
 INFO_FORMAT_HASH_KEYS = ("id", "name", "active")
-PROFILE_RUNS_ON_PARAMS = ("runs_on_mac", "runs_on_iphone", "runs_on_ipad", "runs_on_tv", "runs_on_vision")
+PROFILE_RUNS_ON_PARAMS = ("runs_on_mac", "runs_on_iphone", "runs_on_ipad", "runs_on_tv", "runs_on_vision", "runs_on_windows")
 PROFILE_INFO_HASH_KEYS = (*INFO_FORMAT_HASH_KEYS, *PROFILE_RUNS_ON_PARAMS)
 SCRIPT_INFO_HASH_KEYS = (
     *INFO_FORMAT_HASH_KEYS,
@@ -153,6 +153,7 @@ class ProfileInfoFile(InfoFile):
     runs_on_ipad: bool = False
     runs_on_tv: bool = False
     runs_on_vision: bool = False
+    runs_on_windows: bool = False
 
     @model_validator(mode="after")
     def ensure_mdm_identifier(self) -> Self:
