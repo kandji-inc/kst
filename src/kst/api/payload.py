@@ -8,7 +8,7 @@ ApiPayloadType = TypeVar("ApiPayloadType", "CustomProfilePayload", "CustomScript
 class CustomProfilePayload(BaseModel):
     """Payload model for custom profiles API endpoints."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     @field_validator("profile", mode="after")
     @classmethod
@@ -27,12 +27,14 @@ class CustomProfilePayload(BaseModel):
     runs_on_ipad: bool = False
     runs_on_tv: bool = False
     runs_on_vision: bool = False
+    runs_on_android: bool = False
+    runs_on_windows: bool = False
 
 
 class CustomScriptPayload(BaseModel):
     """Payload model for custom script API endpoints."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     id: Annotated[str, AfterValidator(lambda value: value.lower())]
     name: str
@@ -51,7 +53,7 @@ class CustomScriptPayload(BaseModel):
 class CustomAppPayload(BaseModel):
     """Payload model for custom app library API endpoints."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     id: Annotated[str, AfterValidator(lambda value: value.lower())]
     name: str
@@ -80,7 +82,7 @@ class CustomAppPayload(BaseModel):
 
 
 class CustomAppUploadPayload(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     name: str
     expires: str

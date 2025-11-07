@@ -11,6 +11,8 @@ profile_json = {
     "runs_on_ipad": True,
     "runs_on_tv": True,
     "runs_on_vision": True,
+    "runs_on_android": True,
+    "runs_on_windows": True,
     "created_at": "created_at",
     "updated_at": "updated_at",
 }
