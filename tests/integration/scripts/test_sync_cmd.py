@@ -10,7 +10,7 @@ from kst import app
 from kst.diff import ChangeType
 from kst.repository import CustomScript, Repository
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 def compare_script_object(script1, script2, expected_diff):

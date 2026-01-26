@@ -28,7 +28,7 @@ from tests.fixtures.scripts import (
     scripts_repo_obj,
 )
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 @pytest.mark.usefixtures("tmp_path_cd", "patch_profiles_endpoints", "patch_scripts_endpoints")

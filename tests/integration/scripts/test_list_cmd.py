@@ -9,7 +9,7 @@ from kst import app
 from kst.diff import ChangeType
 from kst.utils import yaml
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 @pytest.mark.parametrize(
