@@ -5,15 +5,18 @@ from typer.testing import CliRunner
 
 from kst import app
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
-@pytest.mark.parametrize("extra_args", [pytest.param(["--help"], id="--help"), pytest.param([], id="no args")])
-def test_help(extra_args: list[str]):
+@pytest.mark.parametrize(
+    ["extra_args", "expected_return"], [pytest.param(["--help"], 0, id="--help"), pytest.param([], 2, id="no args")]
+)
+def test_help(extra_args: list[str], expected_return: int):
     result = runner.invoke(app, ["profile", "show", *extra_args])
 
-    # Check that the command ran successfully
-    assert result.exit_code == 0
+    # Check that the command ran successfully or returned a usage error for no
+    # args, respectively
+    assert result.exit_code == expected_return
 
     # Check that the help message contains the expected content
     assert "Usage: kst profile show [OPTIONS] PROFILE" in result.stdout

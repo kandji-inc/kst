@@ -5,7 +5,7 @@ from typer.testing import CliRunner
 
 from kst import app
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 @pytest.mark.usefixtures("tmp_path_cd")

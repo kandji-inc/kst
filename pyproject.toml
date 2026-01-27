@@ -5,12 +5,12 @@ name = "kst"
 dynamic = ["version"]
 description = "Kandji Sync Toolkit, a utility for local management of Kandji resources."
 dependencies = [
-    "click<8.2.0",
+    "click>=8.2.0",
     "platformdirs>=4.3.6",
     "pydantic>=2.9.2",
     "requests>=2.32.3",
     "ruamel-yaml>=0.18.6",
-    "typer>=0.15.1",
+    "typer>=0.21.1",
 ]
 requires-python = ">=3.12"
 readme = "README.md"

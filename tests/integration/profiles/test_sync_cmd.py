@@ -10,7 +10,7 @@ from kst import app
 from kst.diff import ChangeType
 from kst.repository import CustomProfile, Repository
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 def compare_profile_object(profile1, profile2, expected_diff):

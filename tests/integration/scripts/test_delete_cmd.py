@@ -9,7 +9,7 @@ from kst import app
 from kst.diff import ChangeType
 from kst.repository import CustomScript, Repository
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 def test_help():
