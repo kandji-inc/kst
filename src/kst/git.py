@@ -1,5 +1,6 @@
 import functools
 import logging
+import os
 import shutil
 import subprocess
 from collections import defaultdict
@@ -267,7 +268,7 @@ def generate_commit_body(repo: Path, stage: bool = False) -> str:
 
 
 def commit_all_changes(
-    *, cd_path: Path = Path("."), message: str, scope: Path | None = None, include_body: bool = True
+    *, cd_path: Path = Path("."), message: str, scope: Path | None = None, include_body: bool = True, skip_git: bool = False
 ) -> None:
     """Add all changed files to the staging area and commit with the specified commit message.
 
@@ -276,11 +277,17 @@ def commit_all_changes(
         message (str): The commit message.
         scope (Path | None): The path to add to the staging area. If None, all changes are added.
         include_body (bool): If True, include a generated commit body with the changes in the commit message.
+        skip_git (bool): If True, skip all Git operations and return immediately.
 
     Raises:
         GitRepositoryError: If the command fails.
 
     """
+
+    # Check if Git operations should be skipped
+    if skip_git or os.getenv("KST_DISABLE_GIT", "").lower() in ("1", "true", "yes"):
+        console.debug("Skipping Git operations (disabled via flag or environment variable)")
+        return
 
     git_root = locate_root(cd_path=cd_path, check_marker=False)
 

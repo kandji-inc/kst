@@ -322,3 +322,120 @@ def test_git_status_from_status(git_repo):
     assert git.GitStatus.from_status("T") == git.GitStatus.TYPE_CHANGED
     assert git.GitStatus.from_status("U") == git.GitStatus.UNMERGED
     assert git.GitStatus.from_status("X") == git.GitStatus.UNKNOWN
+
+
+class TestSkipGit:
+    """Tests for the skip_git parameter and KST_DISABLE_GIT environment variable."""
+
+    def test_skip_git_parameter_true(self, kst_repo, caplog):
+        """Ensure commit_all_changes skips Git operations when skip_git=True."""
+        caplog.set_level(logging.DEBUG)
+        (kst_repo / "file01.txt").write_text("test")
+        
+        # Call with skip_git=True
+        git.commit_all_changes(cd_path=kst_repo, message="test commit", skip_git=True)
+        
+        # Verify Git operations were skipped
+        assert "Skipping Git operations (disabled via flag or environment variable)" in caplog.text
+        
+        # Verify no commit was made
+        result = git.git("log", "--oneline", cd_path=kst_repo)
+        assert "test commit" not in result.stdout
+
+    def test_skip_git_parameter_false(self, kst_repo, caplog):
+        """Ensure commit_all_changes performs Git operations when skip_git=False."""
+        caplog.set_level(logging.DEBUG)
+        (kst_repo / "file01.txt").write_text("test")
+        
+        # Call with skip_git=False (explicit)
+        git.commit_all_changes(cd_path=kst_repo, message="test commit", skip_git=False)
+        
+        # Verify Git operations were NOT skipped
+        assert "Skipping Git operations" not in caplog.text
+        
+        # Verify commit was made
+        result = git.git("log", "--oneline", cd_path=kst_repo)
+        assert "test commit" in result.stdout
+
+    def test_env_var_disable_git_1(self, kst_repo, caplog, monkeypatch):
+        """Ensure KST_DISABLE_GIT=1 skips Git operations."""
+        caplog.set_level(logging.DEBUG)
+        monkeypatch.setenv("KST_DISABLE_GIT", "1")
+        (kst_repo / "file01.txt").write_text("test")
+        
+        git.commit_all_changes(cd_path=kst_repo, message="test commit")
+        
+        assert "Skipping Git operations (disabled via flag or environment variable)" in caplog.text
+        result = git.git("log", "--oneline", cd_path=kst_repo)
+        assert "test commit" not in result.stdout
+
+    def test_env_var_disable_git_true(self, kst_repo, caplog, monkeypatch):
+        """Ensure KST_DISABLE_GIT=true skips Git operations."""
+        caplog.set_level(logging.DEBUG)
+        monkeypatch.setenv("KST_DISABLE_GIT", "true")
+        (kst_repo / "file01.txt").write_text("test")
+        
+        git.commit_all_changes(cd_path=kst_repo, message="test commit")
+        
+        assert "Skipping Git operations (disabled via flag or environment variable)" in caplog.text
+        result = git.git("log", "--oneline", cd_path=kst_repo)
+        assert "test commit" not in result.stdout
+
+    def test_env_var_disable_git_yes(self, kst_repo, caplog, monkeypatch):
+        """Ensure KST_DISABLE_GIT=yes skips Git operations."""
+        caplog.set_level(logging.DEBUG)
+        monkeypatch.setenv("KST_DISABLE_GIT", "yes")
+        (kst_repo / "file01.txt").write_text("test")
+        
+        git.commit_all_changes(cd_path=kst_repo, message="test commit")
+        
+        assert "Skipping Git operations (disabled via flag or environment variable)" in caplog.text
+        result = git.git("log", "--oneline", cd_path=kst_repo)
+        assert "test commit" not in result.stdout
+
+    def test_env_var_disable_git_case_insensitive(self, kst_repo, caplog, monkeypatch):
+        """Ensure KST_DISABLE_GIT is case-insensitive."""
+        caplog.set_level(logging.DEBUG)
+        monkeypatch.setenv("KST_DISABLE_GIT", "TRUE")
+        (kst_repo / "file01.txt").write_text("test")
+        
+        git.commit_all_changes(cd_path=kst_repo, message="test commit")
+        
+        assert "Skipping Git operations (disabled via flag or environment variable)" in caplog.text
+        result = git.git("log", "--oneline", cd_path=kst_repo)
+        assert "test commit" not in result.stdout
+
+    def test_env_var_disable_git_invalid_value(self, kst_repo, caplog, monkeypatch):
+        """Ensure invalid KST_DISABLE_GIT values don't skip Git operations."""
+        caplog.set_level(logging.DEBUG)
+        monkeypatch.setenv("KST_DISABLE_GIT", "maybe")
+        (kst_repo / "file01.txt").write_text("test")
+        
+        git.commit_all_changes(cd_path=kst_repo, message="test commit")
+        
+        # Should NOT skip Git operations
+        assert "Skipping Git operations" not in caplog.text
+        result = git.git("log", "--oneline", cd_path=kst_repo)
+        assert "test commit" in result.stdout
+
+    def test_skip_git_parameter_overrides_env_var(self, kst_repo, caplog, monkeypatch):
+        """Ensure skip_git parameter takes precedence over environment variable."""
+        caplog.set_level(logging.DEBUG)
+        monkeypatch.setenv("KST_DISABLE_GIT", "0")  # Env var says don't skip
+        (kst_repo / "file01.txt").write_text("test")
+        
+        # But parameter says skip
+        git.commit_all_changes(cd_path=kst_repo, message="test commit", skip_git=True)
+        
+        assert "Skipping Git operations (disabled via flag or environment variable)" in caplog.text
+        result = git.git("log", "--oneline", cd_path=kst_repo)
+        assert "test commit" not in result.stdout
+
+    def test_no_changes_with_skip_git(self, kst_repo, caplog):
+        """Ensure skip_git works even when there are no changes."""
+        caplog.set_level(logging.DEBUG)
+        
+        # No files created, so no changes
+        git.commit_all_changes(cd_path=kst_repo, message="test commit", skip_git=True)
+        
+        assert "Skipping Git operations (disabled via flag or environment variable)" in caplog.text

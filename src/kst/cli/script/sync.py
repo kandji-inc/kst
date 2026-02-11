@@ -11,6 +11,7 @@ from kst.cli.common import (
     DryRunOption,
     ForceMode,
     KandjiTenantOption,
+    NoGitOption,
     OperationType,
     RepoPathOption,
 )
@@ -69,6 +70,7 @@ def sync_scripts(
     all_scripts: ScriptAllOption = False,
     force_mode: ForceModeOption = ForceMode.SKIP,
     dry_run: DryRunOption = False,
+    no_git: NoGitOption = False,
     tenant_url: KandjiTenantOption = None,
     api_token: ApiTokenOption = None,
 ):
@@ -155,7 +157,7 @@ def sync_scripts(
 
     # Commit changes before syncing
     try:
-        git.commit_all_changes(cd_path=repo, message="Before syncing scripts with Kandji", scope=repo)
+        git.commit_all_changes(cd_path=repo, message="Before syncing scripts with Kandji", scope=repo, skip_git=no_git)
     except GitRepositoryError as error:
         console.print_error(f"Failed to commit changes to the local repository before sync: {error}")
         raise typer.Abort
@@ -165,7 +167,7 @@ def sync_scripts(
 
     # Commit changes after sync
     try:
-        git.commit_all_changes(cd_path=repo, message="After syncing scripts with Kandji", scope=repo)
+        git.commit_all_changes(cd_path=repo, message="After syncing scripts with Kandji", scope=repo, skip_git=no_git)
     except GitRepositoryError:
         console.print_error(
             "Changes were synced successfully but not committed to the local repository. Please commit manually by running `git commit -am 'After syncing scripts with Kandji'`."
