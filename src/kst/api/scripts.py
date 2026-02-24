@@ -129,7 +129,7 @@ class CustomScriptsResource(ResourceBase):
             "restart": restart,
             "show_in_self_service": show_in_self_service,
         }
-        if remediation_script:
+        if remediation_script is not None:
             payload["remediation_script"] = remediation_script
 
         if execution_frequency is ExecutionFrequency.NO_ENFORCEMENT and not show_in_self_service:

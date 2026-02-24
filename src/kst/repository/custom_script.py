@@ -306,7 +306,7 @@ class CustomScript(MemberBase):
         payload = {
             "name": self.name,
             "script": self.audit.content,
-            "remediation_script": "" if self.remediation is None else self.remediation.content,
+            "remediation_script": None if self.remediation is None else self.remediation.content,
             "active": self.info.active,
             "execution_frequency": self.info.execution_frequency,
             "restart": self.info.restart,
@@ -327,7 +327,7 @@ class CustomScript(MemberBase):
             "id": self.id,
             "name": self.name,
             "script": self.audit.content,
-            "remediation_script": "" if self.remediation is None else self.remediation.content,
+            "remediation_script": None if self.remediation is None else self.remediation.content,
             "active": self.info.active,
             "execution_frequency": self.info.execution_frequency,
             "restart": self.info.restart,

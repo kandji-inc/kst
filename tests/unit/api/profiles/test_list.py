@@ -146,10 +146,10 @@ def test_list_json_response_error(monkeypatch, response_factory, custom_profiles
 
 
 @pytest.mark.allow_http
-def test_successful_list_live(custom_profiles_resource):
+def test_successful_list_live(setup_live_profiles_create_and_delete, custom_profiles_resource):
+    profile_id = setup_live_profiles_create_and_delete
     response = custom_profiles_resource.list()
     assert isinstance(response, PayloadList)
-    assert response.next is None
-    assert response.previous is None
     assert response.count > 0
     assert len(response.results) == response.count
+    assert any(profile.id == profile_id for profile in response.results)

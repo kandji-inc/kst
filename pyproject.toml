@@ -63,6 +63,14 @@ python-preference = "only-managed"
 [tool.hatch.version]
 path = "src/kst/__about__.py"
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "pyproject.toml",
+    "src/kst",
+    "LICENSE",
+    "README.md"
+]
+
 [tool.ruff]
 lint.select = ["ALL"]
 # Rules can be ignored, see: https://beta.ruff.rs/docs/rules/

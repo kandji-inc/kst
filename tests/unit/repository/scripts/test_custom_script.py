@@ -258,3 +258,59 @@ class TestCustomScript:
             assert custom_script_obj.diff_hash != original_hash
             custom_script_obj.remediation.content = original_content
             assert custom_script_obj.diff_hash == original_hash
+
+
+class TestUpdateRemoteRemediationScript:
+    """Verify update_remote sends the correct remediation_script value to the API.
+
+    The Kandji API rejects null for remediation_script. When a script has no
+    remediation, update_remote must send None (filtered to absent by the API
+    layer) — not "" which would actively clear remote remediation.
+    """
+
+    def test_without_remediation_does_not_send_empty_string(
+        self, monkeypatch, config, custom_script_factory, script_info_data_factory
+    ):
+        """When remediation is None, update_remote must pass None (not "")."""
+        script = custom_script_factory(has_remediation=False)
+        script.info.show_in_self_service = False
+
+        captured_kwargs = {}
+
+        def fake_update(self, id, **kwargs):
+            captured_kwargs.update(kwargs)
+            data = script_info_data_factory(id=id, show_in_self_service=False)
+            data["script"] = kwargs.get("script", "")
+            data["remediation_script"] = kwargs.get("remediation_script") or ""
+            return CustomScriptPayload.model_validate(data)
+
+        monkeypatch.setattr("kst.api.scripts.CustomScriptsResource.update", fake_update)
+
+        script.update_remote(config)
+
+        assert "remediation_script" in captured_kwargs
+        assert captured_kwargs["remediation_script"] is None
+
+    def test_with_remediation_sends_content(
+        self, monkeypatch, config, custom_script_factory, script_info_data_factory
+    ):
+        """When remediation exists, update_remote must pass its content."""
+        script = custom_script_factory(has_remediation=True)
+        script.info.show_in_self_service = False
+
+        captured_kwargs = {}
+
+        def fake_update(self, id, **kwargs):
+            captured_kwargs.update(kwargs)
+            data = script_info_data_factory(id=id, show_in_self_service=False)
+            data["script"] = kwargs.get("script", "")
+            data["remediation_script"] = kwargs.get("remediation_script") or ""
+            return CustomScriptPayload.model_validate(data)
+
+        monkeypatch.setattr("kst.api.scripts.CustomScriptsResource.update", fake_update)
+
+        script.update_remote(config)
+
+        assert captured_kwargs["remediation_script"] == script.remediation.content
+        assert isinstance(captured_kwargs["remediation_script"], str)
+        assert captured_kwargs["remediation_script"] != ""

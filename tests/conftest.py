@@ -71,6 +71,16 @@ def no_http_requests(monkeypatch, request, response_factory):
         monkeypatch.setattr("requests.Session", TestSession)
 
 
+@pytest.fixture(autouse=True, scope="session")
+def git_config_isolation():
+    """Isolate git operations from user and system config."""
+    gitconfig = as_file(files("tests.resources") / "gitconfig")
+    with gitconfig as gitconfig_path, pytest.MonkeyPatch.context() as mp:
+        mp.setenv("GIT_CONFIG_SYSTEM", os.devnull)
+        mp.setenv("GIT_CONFIG_GLOBAL", str(gitconfig_path))
+        yield
+
+
 @pytest.fixture(autouse=True)
 def git_locate_git_cache_clear():
     """Clear the cache before each test."""
@@ -81,6 +91,12 @@ def git_locate_git_cache_clear():
 def git_locate_root_cache_clear():
     """Clear the cache before each test."""
     git.locate_root.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def git_has_user_config_cache_clear():
+    """Clear the cache before each test."""
+    git.has_git_user_config.cache_clear()
 
 
 @pytest.fixture(autouse=True)
