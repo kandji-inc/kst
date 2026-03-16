@@ -3,6 +3,7 @@
 `kst` (*pronounced kast*) is a utility for managing resources via the Kandji API.
 
 ## Table of Contents
+
 - [Features](#features)
 - [Installation](#installation)
   - [Using Homebrew](#using-homebrew)
@@ -22,6 +23,10 @@
   - [Using the --self-service and --category options](#using-the---self-service-and---category-options)
 - [Pushing Changes to Kandji](#pushing-changes-to-kandji)
 - [Syncing Changes with Kandji](#syncing-changes-with-kandji)
+- [Disabling Automatic Git Commits](#disabling-automatic-git-commits)
+  - [Using the --no-git Flag](#using-the---no-git-flag)
+  - [Using the KST_DISABLE_GIT Environment Variable](#using-the-kst_disable_git-environment-variable)
+  - [GitHub Actions Example](#github-actions-example)
 - [List Resource Sync Statuses](#list-resource-sync-statuses)
 - [Show Resource Details](#show-resource-details)
 - [Local Resource Directory Structure](#local-resource-directory-structure)
@@ -126,7 +131,7 @@ Before doing anything else, you'll need to create a local repository. A `kst` re
 using `kst new`. Under the hood, a `kst` repository just a `git` repository with a `.kst` file at its root, but using
 the command will include a handy `README.md` to get you started.
 
-```
+```text
 ❯ kst new kst-repo
 Created a new kst repository at kst-repo
 Check out the included README.md file for more information on getting started.
@@ -147,7 +152,7 @@ However, it's generally a better idea to store the credentials in environment va
 credentials for every command. The following environment variables are automatically checked by `kst` before prompting
 the user.
 
-- `KST_TENANT`: The `https` API URL of your Kandji tenant (e.g., https://mysubdomain.api.kandji.io).
+- `KST_TENANT`: The `https` API URL of your Kandji tenant (e.g., <https://mysubdomain.api.kandji.io>).
 - `KST_TOKEN`: The API token with permissions to your Kandji tenant (see documentation:
   [Generate an API Token](https://support.kandji.io/kb/kandji-api#generate-an-api-token)).
 
@@ -169,8 +174,8 @@ If you already have resources in Kandji, you can have `kst` pull all or some of 
 a single command. Use the `--all` option to pull all of a resource type into the local repo or select specific resources
 with the `--id` option. `--id` can be specified more than one to include multiple resources.
 
-* `kst profile pull [OPTIONS]`
-* `kst script pull [OPTIONS]`
+- `kst profile pull [OPTIONS]`
+- `kst script pull [OPTIONS]`
 
 This will create a `profiles` or `scripts` directory in your repository, if one doesn't exist, and download each Kandji
 resource and its metadata into a subdirectory.
@@ -191,8 +196,8 @@ print a full list of actions which would have occurred.
 
 The simplest means of creating a new local script or profile is using the `new` command.
 
-* `kst profile new [OPTIONS]`
-* `kst script new [OPTIONS]`
+- `kst profile new [OPTIONS]`
+- `kst script new [OPTIONS]`
 
 Without any options, this will create a new resource in the respective directory and populate it with default metadata
 and content. The defaults match Kandji's defaults for creating a new script or profile in the user interface (where
@@ -204,7 +209,8 @@ is named accordingly. Other options can be included to modify the default settin
 > You can rename or move a resource's directory anywhere within the main profiles/scripts subdirectories you see fit
 > without affecting the resource. The resources's name is determined by the `name` key in the info file.
 
-#### Examples:
+#### Examples
+
 ```
 kst profile new --name "My Profile" --runs-on mac --active
 ```
@@ -220,12 +226,13 @@ into a new resource instead of creating one from scratch. For profiles, use the 
 the mobileconfig file. For scripts, use the `--import-audit` or `--import-remediation` options. These options can be
 used with other `new` command options to specify additional metadata.
 
-#### Examples:
-```
+#### Examples
+
+```text
 kst profile new --import /path/to/MyProfile.mobileconfig
 ```
 
-```
+```text
 kst script new --name "My Script" --import-audit /path/to/audit.sh --import-remediation /path/to/remediation.sh
 ```
 
@@ -260,7 +267,7 @@ category was deleted or renamed, an error will be raised and you will need to pr
 kst script new --name ss_script_no_category --self-service
 ```
 
-The above command tells `kst` to create a new custom script Library Item called _ss_script_no_category_ and make that
+The above command tells `kst` to create a new custom script Library Item called *ss_script_no_category* and make that
 custom script available in Self Service under the `Utilities` category.
 
 If we take a look at the associated info file, we see that `show_in_self_service` is set to `true` and the
@@ -293,7 +300,7 @@ If we take a look at the associated info file, we see that `show_in_self_service
 kst script new --name ss_script_option --self-service --category Apps
 ```
 
-The above command tells KST to create a new custom script Library Item called _ss_script_option_ and make that custom
+The above command tells KST to create a new custom script Library Item called *ss_script_option* and make that custom
 script available in Self Service under the `Apps` category.
 
 Looking at the associated info file, we see that `show_in_self_service` is set to `true` and the
@@ -326,8 +333,8 @@ Check out `kst script new --help` for additional usage details.
 
 Use the `push` command to upload new or updated resources to your Kandji tenant.
 
-* `kst profile push [OPTIONS]`
-* `kst script push [OPTIONS]`
+- `kst profile push [OPTIONS]`
+- `kst script push [OPTIONS]`
 
 You can choose which resources to push using the `--all`, `--id`, and `--path` options. `--id` and `--path` can be
 specified more than once to include more than one resource.
@@ -340,12 +347,13 @@ which are not present in the local repository, use the `--clean` option.
 > The `--clean` option can only be used with `--all`. If you would like to delete only specific resources use the
 > `delete` command described below.
 
-#### Examples:
-```
+#### Examples
+
+```text
 kst profile push --id "de6cf090-cf14-4517-bc8e-110f2e4ed56a"
 ```
 
-```
+```text
 kst script push --all --clean
 ```
 
@@ -353,8 +361,8 @@ kst script push --all --clean
 
 The `sync` command can be used to push and pull changes simultaneously.
 
-* `kst profile sync [OPTIONS]`
-* `kst script sync [OPTIONS]`
+- `kst profile sync [OPTIONS]`
+- `kst script sync [OPTIONS]`
 
 In order to make updates more seamless, the `sync` command will create missing resources in both the local repository
 and the Kandji tenant as well as updating either with changes. In cases where update direction cannot be definitively
@@ -364,21 +372,103 @@ The `sync` command includes similar options to the `push` and `pull` commands wi
 to resolve conflicts. the `--force-mode` option can be set to `push` or `pull` in order to automatically overwrite
 conflicting changes when they arise.
 
-#### Examples:
-```
+#### Examples
+
+```text
 kst profile sync --id "18f75e5f-5a79-45ef-a354-314c517b9280"
 ```
 
-```
+```text
 kst profile sync --all --force-mode push
 ```
+
+## Disabling Automatic Git Commits
+
+By default, `kst` automatically commits changes to your local Git repository before and after `pull`, `push`, and `sync` operations. This behavior can be disabled for integration with CI/CD pipelines or custom Git workflows.
+
+### Using the --no-git Flag
+
+Add the `--no-git` flag to any `pull`, `push`, or `sync` command to skip automatic Git commits:
+
+```bash
+kst script pull --all --no-git
+kst profile push --all --no-git
+kst script sync --all --no-git
+```
+
+### Using the KST_DISABLE_GIT Environment Variable
+
+Set the `KST_DISABLE_GIT` environment variable to disable Git operations globally:
+
+```bash
+export KST_DISABLE_GIT=1
+kst script pull --all
+kst profile pull --all
+```
+
+The environment variable accepts the following values to disable Git operations: `1`, `true`, or `yes` (case-insensitive).
+
+### GitHub Actions Example
+
+Here's an example workflow that uses `kst` to sync resources from Kandji and manages Git commits separately:
+
+```yaml
+name: Sync Kandji Resources
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install KST
+        run: pip install kst
+      
+      - name: Pull scripts from Kandji
+        env:
+          KST_TENANT: ${{ secrets.KANDJI_TENANT }}
+          KST_TOKEN: ${{ secrets.KANDJI_TOKEN }}
+          KST_DISABLE_GIT: 1
+        run: kst script pull --all --no-git
+      
+      - name: Pull profiles from Kandji
+        env:
+          KST_TENANT: ${{ secrets.KANDJI_TENANT }}
+          KST_TOKEN: ${{ secrets.KANDJI_TOKEN }}
+          KST_DISABLE_GIT: 1
+        run: kst profile pull --all --no-git
+      
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git diff --quiet && git diff --staged --quiet || \
+            (git commit -m "Sync: Update from Kandji $(date -u +%Y-%m-%d\ %H:%M\ UTC)" && git push)
+```
+
+This approach provides several benefits:
+
+- **Separation of concerns**: KST handles Kandji API operations, your workflow handles Git operations
+- **Custom commit messages**: Full control over commit message format and content
+- **Conditional commits**: Only commit when there are actual changes
+- **Audit trail**: Clear visibility of what changed and when in your Git history
 
 ## List Resource Sync Statuses
 
 The `list` commands makes it simple to print a quick view of all your profiles or scripts as well as their sync status.
 
-* `kst profile list [OPTIONS]`
-* `kst script list [OPTIONS]`
+- `kst profile list [OPTIONS]`
+- `kst script list [OPTIONS]`
 
 If you would like to limit the list to remote or local resources only you can pass the `--local` or `--remote` flags
 respectively. Similarly, if you want to to only show resources with a specific status you can use the `--include` or
@@ -393,8 +483,8 @@ useful when piping `kst` output to other command line tools.
 
 Use the `show` command to display the full metadata and content of a custom resource.
 
-* `kst profile show [OPTIONS] PROFILE`
-* `kst script show [OPTIONS] SCRIPT`
+- `kst profile show [OPTIONS] PROFILE`
+- `kst script show [OPTIONS] SCRIPT`
 
 The first argument should be the ID or path of a profile or script.
 
@@ -406,7 +496,8 @@ Additionally, for profiles you can pass the `--profile` flag to show only the pr
 you can pass `--audit` or `--remediation` to show their respective content.
 
 #### Example Profile Output
-```
+
+```text
 $ kst profile show a5f20d99-315e-40b5-a3d5-7cd96f5f2ae4
 
 Custom Profile Details (Local)
@@ -452,7 +543,8 @@ Custom Profile Details (Local)
 ```
 
 #### Example Script Output
-```
+
+```text
 $ kst script show cb3260ce-006a-4985-b06e-d7ea52c09151
 
 Custom Script Details (Local)
@@ -500,6 +592,7 @@ actually a directory of associated files. Certain files are required for a direc
 ### Custom Profile
 
 Each profile requires:
+
 1. A directory within a kst repository `profiles` directory containing the profile's files
 2. Exactly one `info.[plist|yaml|json]` file containing the profile's associated metadata
 3. Exactly one `.mobileconfig` file containing the profile's content
@@ -512,6 +605,7 @@ $ lsd --tree profiles/MyFancyProfile
 ```
 
 `info.yaml`
+
 ```yaml
 id: 54bef6b3-b25e-44b4-89fd-d528d73939e4
 name: MyFancyProfile
@@ -525,6 +619,7 @@ runs_on_vision: true
 ```
 
 `profile.mobileconfig`
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -551,12 +646,13 @@ runs_on_vision: true
 ### Custom Script
 
 Each script requires:
+
 1. A directory within a kst repository `scripts` directory containing the script's files
 2. Exactly one `info.[plist|yaml|json]` file containing the scripts's associated metadata
 3. Exactly one audit script file (filename must start with `audit`)
 4. Optionally one remediation script file (filename must start with `remediation`)
 
-```
+```text
 $ lsd --tree scripts/MyFancyScript
  MyFancyScript
 ├──  audit.zsh
@@ -587,6 +683,7 @@ exit 0
 ```
 
 `remediation.zsh`
+
 ```shell
 #!/bin/zsh -f
 # https://support.kandji.io/kb/custom-scripts-overview

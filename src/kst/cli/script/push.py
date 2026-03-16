@@ -10,6 +10,7 @@ from kst.cli.common import (
     ApiTokenOption,
     DryRunOption,
     KandjiTenantOption,
+    NoGitOption,
     RepoPathOption,
 )
 from kst.cli.utility import (
@@ -67,6 +68,7 @@ def push_scripts(
     force: ForceOption = False,
     clean: CleanOption = False,
     dry_run: DryRunOption = False,
+    no_git: NoGitOption = False,
     tenant_url: KandjiTenantOption = None,
     api_token: ApiTokenOption = None,
 ):
@@ -160,7 +162,7 @@ def push_scripts(
 
     # Commit changes before pushing
     try:
-        git.commit_all_changes(cd_path=repo, message="Before pushing scripts to Kandji", scope=repo)
+        git.commit_all_changes(cd_path=repo, message="Before pushing scripts to Kandji", scope=repo, skip_git=no_git)
     except GitRepositoryError as error:
         console.print_error(f"Failed to commit changes to the local repository before push: {error}")
         raise typer.Abort
@@ -170,7 +172,7 @@ def push_scripts(
 
     # Commit changes after pushing
     try:
-        git.commit_all_changes(cd_path=repo, message="After pushing scripts to Kandji", scope=repo)
+        git.commit_all_changes(cd_path=repo, message="After pushing scripts to Kandji", scope=repo, skip_git=no_git)
     except GitRepositoryError:
         console.print_error(
             "Changes were pushed successfully but not committed to the local repository. Please commit manually by running `git commit -am 'After pushing scripts to Kandji'`."

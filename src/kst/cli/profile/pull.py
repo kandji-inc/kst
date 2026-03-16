@@ -10,6 +10,7 @@ from kst.cli.common import (
     ApiTokenOption,
     DryRunOption,
     KandjiTenantOption,
+    NoGitOption,
     RepoPathOption,
 )
 from kst.cli.utility import (
@@ -67,6 +68,7 @@ def pull_profiles(
     force: ForceOption = False,
     clean: CleanOption = False,
     dry_run: DryRunOption = False,
+    no_git: NoGitOption = False,
     tenant_url: KandjiTenantOption = None,
     api_token: ApiTokenOption = None,
 ):
@@ -161,7 +163,7 @@ def pull_profiles(
 
     # Commit changes before pulling
     try:
-        git.commit_all_changes(cd_path=repo, message="Before pulling profiles from Kandji", scope=repo)
+        git.commit_all_changes(cd_path=repo, message="Before pulling profiles from Kandji", scope=repo, skip_git=no_git)
     except GitRepositoryError as error:
         console.print_error(f"Failed to commit changes to the local repository before pull: {error}")
         raise typer.Abort
@@ -171,7 +173,7 @@ def pull_profiles(
 
     # Commit changes after pulling
     try:
-        git.commit_all_changes(cd_path=repo, message="After pulling profiles from Kandji", scope=repo)
+        git.commit_all_changes(cd_path=repo, message="After pulling profiles from Kandji", scope=repo, skip_git=no_git)
     except GitRepositoryError:
         console.print_error(
             "Changes were pulled successfully but not committed to the local repository. Please commit manually by running `git commit -am 'After pulling profiles to Kandji'`."
