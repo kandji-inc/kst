@@ -93,7 +93,7 @@ def git(
     cmd.extend(args)
     console.debug(f"Executing git command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, check=False, text=True, capture_output=True)
+    result = subprocess.run(cmd, check=False, text=True, capture_output=True, start_new_session=True)
     console.debug(f"Git command executed with exit code {result.returncode}")
 
     if expected_exit_code is not None and result.returncode != expected_exit_code:
