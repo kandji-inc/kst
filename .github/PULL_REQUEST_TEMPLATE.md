@@ -1,5 +1,5 @@
 ## ❓ _Why This Change_
--
+
 
 ## 🆕 _What Changed_
 -
@@ -12,5 +12,5 @@
 ```
 
 ## :shipit: _Ready Checks_
-- [ ] These changes have been carefully tested across multiple macOS versions
-- [ ] Where logical, code updates include inline comments/docstrings
+- [ ] PR name begins with ticket # (`[SYS-XXX]`)
+- [ ] Changes are tightly scoped and well documented (if not self-evident)

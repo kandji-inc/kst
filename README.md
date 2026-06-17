@@ -1,6 +1,46 @@
-# Kandji Sync Toolkit
+# Kandji Sync Toolkit (deprecated)
 
 `kst` (*pronounced kast*) is a utility for managing resources via the Kandji API.
+
+> [!WARNING]
+> **`kst` (Kandji Sync Toolkit) is deprecated.** It now ships as a thin
+> compatibility wrapper that dispatches to [`iructl`](https://github.com/kandji-inc/iructl).
+> New work should use `iructl` directly. Existing work should be updated at your
+> earliest convenience.
+
+## Migrate to `iructl`
+
+### Install
+
+```sh
+uv tool install iructl
+```
+
+or via Homebrew:
+
+```sh
+brew tap kandji-inc/iructl
+brew install iructl
+```
+
+### Renamed symbols
+
+Library callers (`from kst.X import Y`) should update to `iructl.X`. Most
+names are unchanged — only the following were renamed during the rebrand:
+
+| Legacy (`kst`)                          | New (`iructl`)                            |
+| --------------------------------------- | ----------------------------------------- |
+| `kst.exceptions.KstError`               | `iructl.exceptions.IructlError`           |
+| `kst.api.ApiPayloadType`                | `iructl.api.ApiPayload`                   |
+
+---
+
+> [!IMPORTANT]
+> The usage documentation below describes the deprecated `kst` CLI. Everything still
+> works through the wrapper, so the instructions remain accurate. However, wrapper
+> compatibility is temporary and should not be relied on long term.
+>
+> New and existing projects should move to [`iructl`](https://github.com/kandji-inc/iructl)
 
 ## Table of Contents
 - [Features](#features)
@@ -15,7 +55,7 @@
 - [Populating Your Local Repository](#populating-your-local-repository)
   - [Fetching Existing Resources](#fetching-existing-resources)
   - [Create a New Resource](#create-a-new-resource)
-  - [Import a Existing Local Script or Profile](#import-a-existing-local-script-or-profile)
+  - [Import an Existing Local Script or Profile](#import-an-existing-local-script-or-profile)
 - [Edit a Local Resource](#edit-a-local-resource)
 - [Making a Custom Script Available in Self Service](#making-a-custom-script-available-in-self-service)
   - [Using the --self-service option](#using-the---self-service-option)
@@ -42,10 +82,10 @@
 ### Using Homebrew
 
 >[!TIP]
-> `brew` the missing (yet ubiquitous) macOS package manager for CLI tools and
+> `brew` is the missing (yet ubiquitous) macOS package manager for CLI tools and
 > native macOS applications.
 >
-> More information at [brew.sh](https://docs.astral.sh/uv/getting-started/installation/).
+> More information at [brew.sh](https://brew.sh).
 
 ```sh
 brew tap kandji-inc/kst https://github.com/kandji-inc/kst.git
@@ -86,7 +126,7 @@ Follow the steps below to quickly get up and running with a local copy of your K
     1. `export KST_TENANT=<YOUR_API_URL_HERE>`
     2. `export KST_TOKEN=<YOUR_API_TOKEN_HERE>`
 4. Download your custom profiles from Kandji: `kst profile pull --all`
-5. Download your custom scripts from Kandji `kst script pull --all`
+5. Download your custom scripts from Kandji: `kst script pull --all`
 
 > [!Note]
 > Replace `<YOUR_API_URL_HERE>` and `<YOUR_API_TOKEN_HERE>` with your API URL and token. See the authentication section
@@ -123,7 +163,7 @@ Usage: kst [OPTIONS] COMMAND [ARGS]...
 ## Creating Your Local Repository
 
 Before doing anything else, you'll need to create a local repository. A `kst` repository can be created in any directory
-using `kst new`. Under the hood, a `kst` repository just a `git` repository with a `.kst` file at its root, but using
+using `kst new`. Under the hood, a `kst` repository is just a `git` repository with a `.kst` file at its root, but using
 the command will include a handy `README.md` to get you started.
 
 ```
@@ -167,7 +207,7 @@ the user.
 
 If you already have resources in Kandji, you can have `kst` pull all or some of them down to your local repository with
 a single command. Use the `--all` option to pull all of a resource type into the local repo or select specific resources
-with the `--id` option. `--id` can be specified more than one to include multiple resources.
+with the `--id` option. `--id` can be specified more than once to include multiple resources.
 
 * `kst profile pull [OPTIONS]`
 * `kst script pull [OPTIONS]`
@@ -202,7 +242,7 @@ is named accordingly. Other options can be included to modify the default settin
 
 > [!TIP]
 > You can rename or move a resource's directory anywhere within the main profiles/scripts subdirectories you see fit
-> without affecting the resource. The resources's name is determined by the `name` key in the info file.
+> without affecting the resource. The resource's name is determined by the `name` key in the info file.
 
 #### Examples:
 ```
@@ -213,7 +253,7 @@ kst profile new --name "My Profile" --runs-on mac --active
 kst script new --name "My Script" --execution-frequency every_15_min --include-remediation
 ```
 
-### Import a Existing Local Script or Profile
+### Import an Existing Local Script or Profile
 
 If you already have a mobileconfig or a script you want to deploy in Kandji, you can import the content
 into a new resource instead of creating one from scratch. For profiles, use the `--import` option to specify the path to
@@ -264,7 +304,7 @@ The above command tells `kst` to create a new custom script Library Item called 
 custom script available in Self Service under the `Utilities` category.
 
 If we take a look at the associated info file, we see that `show_in_self_service` is set to `true` and the
-`self_service_category` is set to `Utilities`.
+`self_service_category_id` is set to `Utilities`.
 
 ```xml
 <dict>
@@ -275,7 +315,7 @@ If we take a look at the associated info file, we see that `show_in_self_service
     <key>id</key>
     <string>2b95fd99-06ec-4492-a934-e44ab8e113e9</string>
     <key>name</key>
-    <string>ss_script_option</string>
+    <string>ss_script_no_category</string>
     <key>restart</key>
     <false/>
     <key>self_service_category_id</key>
@@ -297,7 +337,7 @@ The above command tells KST to create a new custom script Library Item called _s
 script available in Self Service under the `Apps` category.
 
 Looking at the associated info file, we see that `show_in_self_service` is set to `true` and the
-`self_service_category` is set to `Apps`.
+`self_service_category_id` is set to `Apps`.
 
 ```xml
 <dict>
@@ -361,7 +401,7 @@ and the Kandji tenant as well as updating either with changes. In cases where up
 determined, a conflicting change is shown and the resource is skipped.
 
 The `sync` command includes similar options to the `push` and `pull` commands with the addition of `--force-mode` to
-to resolve conflicts. the `--force-mode` option can be set to `push` or `pull` in order to automatically overwrite
+resolve conflicts. The `--force-mode` option can be set to `push` or `pull` in order to automatically overwrite
 conflicting changes when they arise.
 
 #### Examples:
@@ -381,7 +421,7 @@ The `list` commands makes it simple to print a quick view of all your profiles o
 * `kst script list [OPTIONS]`
 
 If you would like to limit the list to remote or local resources only you can pass the `--local` or `--remote` flags
-respectively. Similarly, if you want to to only show resources with a specific status you can use the `--include` or
+respectively. Similarly, if you want to only show resources with a specific status you can use the `--include` or
 `--exclude` flags. Include and exclude can be used multiple times to specify more than one status. Available statuses
 include: no_changes, new_remote, updated_remote, new_local, updated_local, conflict
 
@@ -490,7 +530,7 @@ Custom Script Details (Local)
 
 ## Local Resource Directory Structure
 
-Since Kandji resources must also contain metadata (e.g. `active` or `name`), each resources's on disk representation is
+Since Kandji resources must also contain metadata (e.g. `active` or `name`), each resource's on-disk representation is
 actually a directory of associated files. Certain files are required for a directory to be recognized as a resource.
 
 >[!TIP]
@@ -552,7 +592,7 @@ runs_on_vision: true
 
 Each script requires:
 1. A directory within a kst repository `scripts` directory containing the script's files
-2. Exactly one `info.[plist|yaml|json]` file containing the scripts's associated metadata
+2. Exactly one `info.[plist|yaml|json]` file containing the script's associated metadata
 3. Exactly one audit script file (filename must start with `audit`)
 4. Optionally one remediation script file (filename must start with `remediation`)
 
@@ -597,7 +637,7 @@ exit 0
 
 ## Manually Creating Resources
 
-If you are unable to use the `new` command for any reason, resources can also be created manually
+If you are unable to use the `new` command for any reason, resources can also be created manually.
 
 1. Create a new directory (named however you like) to hold your resource in the correct repository subdirectory
    (`profiles` or `scripts`)
