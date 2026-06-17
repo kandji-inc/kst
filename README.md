@@ -19,7 +19,7 @@ uv tool install iructl
 or via Homebrew:
 
 ```sh
-brew tap kandji-inc/iructl
+brew tap kandji-inc/iructl https://github.com/kandji-inc/iructl.git
 brew install iructl
 ```
 
